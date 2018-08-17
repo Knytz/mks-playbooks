@@ -1,0 +1,75 @@
+---
+- name: create a Vault folder
+  file:
+    path: /etc/vault
+    state: directory
+
+- name: create a Vault keys folder
+  file:
+    path: /etc/vault/keys
+    state: directory
+    mode: 0700
+
+- name: copy 'approle-login.sh'
+  template: 
+    src: "{{ role_path }}/files/approle-login.sh.j2"
+    dest: "{{ vault_folder }}/approle-login.sh"
+    mode: 0755
+
+- set_fact: 
+    issue_secret_id: false
+
+- name: will skip next steps if 'role-id' and 'secret-id' are already present and valid
+  shell: '{{ vault_folder }}/approle-login.sh'
+  register: approle_token
+  ignore_errors: yes
+
+- set_fact: 
+    issue_secret_id: true 
+  when: (approle_token.rc != 0)
+
+- name: fail if a 'vault_token' has not been provided
+  debug:
+    msg: "Please provide a Vault Token as 'vault_token=...' as '--extra-vars' when running the Ansible playbook"
+  failed_when: (vault_token is not defined) or (vault_token == "")
+  when: issue_secret_id
+
+- name: fetch Vault 'role-id' for role '{{ vault_role }}'
+  uri:
+    url: '{{ vault_url }}/v1/auth/approle/role/{{ vault_role }}/role-id'
+    method: GET
+    status_code: 200
+    headers:
+      X-Vault-Token: '{{ vault_token }}'
+  register: role_id_response
+  when: issue_secret_id
+
+- name: parse the response and save the 'role-id'
+  copy: 
+    content: '{{ role_id_response.json.data.role_id }}'
+    dest: '{{ vault_keys_folder }}/approle-role-id.txt'
+  when: issue_secret_id
+
+- name: fetch Vault 'secret-id' for role '{{ vault_role }}'
+  uri:
+    url: '{{ vault_url }}/v1/auth/approle/role/{{ vault_role }}/secret-id'
+    method: POST
+    status_code: 200
+    headers:
+      X-Vault-Token: '{{ vault_token }}'
+  register: secret_id_response
+  when: issue_secret_id
+  no_log: true
+
+- name: parse the response and save the 'secret-id'
+  copy: 
+    content: '{{ secret_id_response.json.data.secret_id }}'
+    dest: '{{ vault_keys_folder }}/approle-secret-id.txt'
+  when: issue_secret_id
+  no_log: true
+
+- name: set private access to 'secret-id' file
+  file:
+    path: '{{ vault_keys_folder }}/approle-secret-id.txt'
+    mode: 0600
+  when: issue_secret_id

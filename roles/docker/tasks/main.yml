@@ -1,0 +1,19 @@
+---
+# TODO: Install first EPEL Release for RHEL systems
+
+- name: install docker
+  package:
+    name: 'docker'
+    state: latest
+
+- name: service docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: adding existing user '{{ user }}' to group 'docker'
+  user:
+    name: '{{ user }}'
+    groups: docker
+    append: yes

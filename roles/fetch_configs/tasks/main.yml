@@ -1,0 +1,32 @@
+---
+- name: retrieve Vault URL from the configuration service
+  uri:
+    url: '{{ vault_config_url }}/vault_url'
+    method: GET
+    status_code: 200
+    body_format: json
+  register: vault_url_coded
+  delegate_to: 127.0.0.1
+
+- name: decode base64 response
+  shell: 'echo {{ vault_url_coded.json[0].Value }} | base64 --decode'
+  args:
+    executable: /bin/bash
+  register: vault_url
+  delegate_to: 127.0.0.1
+
+- name: retrieve OpenVPN client config file from the configuration service
+  uri:
+    url: '{{ openvpn_config_url }}/client_conf'
+    method: GET
+    status_code: 200
+    body_format: json
+  register: client_conf_template_coded
+  delegate_to: 127.0.0.1
+
+- name: decode base64 response
+  shell: 'echo {{ client_conf_template_coded.json[0].Value }} | base64 --decode'
+  args:
+    executable: /bin/bash
+  register: openvpn_client_conf_template
+  delegate_to: 127.0.0.1

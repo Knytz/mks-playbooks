@@ -1,0 +1,38 @@
+#!/bin/bash
+# Author: Romain Buisson - Mekom Solutions
+# Contact: support@mekomsolutions.com
+#
+# Script to login to Vault using AppRole authentication method
+
+url="{{ vault_url }}/v1/auth/approle/login"
+response="/tmp/response.json"
+role_id=$(cat {{ vault_keys_folder }}/approle-role-id.txt)
+secret_id=$(cat {{ vault_keys_folder }}/approle-secret-id.txt)
+log_folder="/var/log/vault/"
+log="$log_folder/login.log"
+
+mkdir -p $log_folder
+rm -f $response
+
+generate_payload()
+{
+cat <<heredoc_delimitera_14e49cd
+{
+  "role_id": "$role_id",
+  "secret_id": "$secret_id"
+}
+heredoc_delimitera_14e49cd
+}
+
+status=$(curl -s --request POST -w %{http_code} --data "$(generate_payload)" $url -o $response)
+
+if [[ "$status" = "200" ]] ; then
+  VAULT_TOKEN=$(cat $response | jq .auth.client_token)
+  echo $VAULT_TOKEN | tr -d '"'
+else
+  echo "[ERROR] $(date) - Unable to rotate/renew the CRL (non 200 HTTP status code)" >> $log
+  cat $response >> $log
+  echo "Returned HTTP/2: $status" >> $log
+  exit 1
+fi
+exit 0

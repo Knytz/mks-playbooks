@@ -1,0 +1,16 @@
+---
+- name: configure/update packages
+  package:
+    name: '*'
+    state: present
+    update_cache: yes
+
+- name: install 'nano' package
+  package:
+    name: nano
+    state: present
+
+- name: install 'tree' package
+  package:
+    name: tree
+    state: present

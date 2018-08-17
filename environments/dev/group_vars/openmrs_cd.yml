@@ -1,0 +1,3 @@
+---
+vault_role: openmrs_cd
+openmrs_cd_folder: /opt/openmrs-cd

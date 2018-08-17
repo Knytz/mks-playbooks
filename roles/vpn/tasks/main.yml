@@ -1,0 +1,117 @@
+---
+- name: install OpenVPN package
+  package:
+    name: openvpn
+    state: latest
+
+- name: create an OpenVPN folder to store keys
+  file:
+    path: /etc/openvpn/keys
+    state: directory
+    mode: 0700
+
+- name: check if the VPN certificate is already present
+  stat:
+    path: '{{ openvpn_keys_folder }}/{{ common_name }}.crt'
+  register: cert_stat
+
+- name: check if the VPN private key is already present
+  stat:
+    path: '{{ openvpn_keys_folder }}/{{ common_name }}.key'
+  register: key_stat
+
+- name: check if the VPN CA chain is already present
+  stat:
+    path: '{{ openvpn_keys_folder }}/{{ mks_vpn_pki_chain_name }}.crt'
+  register: chain_stat
+
+- set_fact:
+    renew: false
+
+- name: check if the VPN certificate is soon to expire
+  command: 'openssl x509 -checkend {{ mks_vpn_cert_renew_threshold }} -noout -in {{ openvpn_keys_folder }}/{{ common_name }}.crt'
+  register: cert_check
+  changed_when: cert_check.rc != 0
+  failed_when: cert_check.stdout_lines|length > 0
+  when: (cert_stat.stat.exists == True)
+
+- set_fact:
+    renew: true
+  when: (cert_stat.stat.exists == false) or
+        (key_stat.stat.exists == false) or
+        (chain_stat.stat.exists == false) or
+        (cert_check.rc != 0) or
+        (force_renew_certs != false)
+
+- name: log in Vault
+  shell: '{{ vault_folder }}/approle-login.sh'
+  register: approle_token
+  when: renew
+
+- name: issue a new VPN certficate from Vault
+  uri:
+    url: '{{ vault_url }}/v1/{{ mks_vpn_pki }}/issue/{{ mks_vpn_pki_client_role }}'
+    method: POST
+    status_code: 200
+    body_format: json
+    body: 
+      common_name: '{{ common_name }}'
+      ttl: '{{ mks_vpn_pki_ttl }}'
+    headers:
+      X-Vault-Token: '{{ approle_token.stdout }}'
+  register: response
+  when: renew
+
+- name: parse the response and save the private key
+  copy:
+    content: '{{ response.json.data.private_key }}'
+    dest: '{{ openvpn_keys_folder }}/{{ common_name }}.key'
+  when: renew
+
+- name: set private access to the private key file
+  file:
+    path: '{{ openvpn_keys_folder }}/{{ common_name }}.key'
+    mode: 0600
+  when: renew
+
+- name: parse the response and save the certificate
+  copy:
+    content: '{{ response.json.data.certificate }}'
+    dest: '{{ openvpn_keys_folder }}/{{ common_name }}.crt'
+  when: renew
+
+- name: fetch the CA chain
+  uri:
+    url: '{{ vault_url }}/v1/{{ mks_vpn_pki }}/ca_chain'
+    method: GET
+    status_code: 200
+    body_format: json
+    return_content: yes
+  register: ca_chain
+  when: renew
+
+- name: parse the response and save the CA chain
+  copy:
+    content: '{{ ca_chain.content }}' 
+    dest: '{{ openvpn_keys_folder }}/{{ mks_vpn_pki_chain_name }}.crt'
+  when: renew
+
+- name: save the configuration template as 'client.conf.j2'
+  copy:
+    content: '{{ conf_template.stdout }}'
+    dest: /tmp/client.conf.j2
+
+- name: get the 'client.conf.j2' configuration template
+  fetch:
+    src: /tmp/client.conf.j2
+    dest: '/tmp/ansible/'
+
+- name: save the configuration as 'client.conf'
+  template:
+    src: '/tmp/ansible/{{ inventory_hostname }}/tmp/client.conf.j2'
+    dest: '{{ openvpn_folder }}/client.conf'
+
+- name: set OpenVPN as a service to start at boot
+  service:
+    name: "{{ 'openvpn@client' if ansible_service_mgr == 'systemd' else 'openvpn' }}"
+    enabled: yes

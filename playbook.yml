@@ -1,0 +1,32 @@
+---
+- name: retrieve vars from configuration service
+  hosts: localhost
+  roles:
+    - role: fetch_configs
+
+- hosts: all
+  tasks:
+    - name: set Vault URL
+      set_fact:
+        vault_url: "{{ hostvars['localhost']['vault_url'].stdout }}" 
+
+- hosts: docker_host
+  become: true
+  roles:
+   - role: common
+   - role: vault
+   - role: vpn
+     conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
+   - role: docker
+     user: '{{ ansible_user }}'
+
+- hosts: openmrs_cd
+  become: true
+  roles:
+   - role: common
+   - role: vault
+   - role: vpn
+     conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
+   - role: docker
+     user: '{{ ansible_user }}'
+   - role: openmrs_cd
