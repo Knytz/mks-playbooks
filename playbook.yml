@@ -19,8 +19,9 @@
    - role: vault
    - role: vpn
      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
-   - role: docker
-     docker_user: '{{ ansible_user }}'
+   - role: geerlingguy.docker
+     docker_users:
+      - '{{ ansible_user }}'
 
 - hosts: openmrs_cd_host
   become: true
@@ -29,8 +30,9 @@
    - role: vault
    - role: vpn
      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
-   - role: docker
-     docker_user: '{{ ansible_user }}'
+   - role: geerlingguy.docker
+     docker_users:
+      - '{{ ansible_user }}'
    - role: openmrs_cd
      nexus_repo_id: "{{ hostvars['localhost']['nexus_repo_id'].stdout }}"
      nexus_url: "{{ hostvars['localhost']['nexus_url'].stdout }}"
