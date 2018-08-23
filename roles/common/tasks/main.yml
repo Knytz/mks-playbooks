@@ -14,3 +14,13 @@
   package:
     name: tree
     state: present
+
+- name: install 'jq' package
+  package:
+    name: jq
+    state: present
+
+- name: install Epel release
+  include_role:
+    name: geerlingguy.repo-epel
+  when: ansible_os_family == 'RedHat'

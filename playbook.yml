@@ -3,12 +3,14 @@
   hosts: localhost
   roles:
     - role: fetch_configs
+  tags: fetch_configs
 
 - hosts: all
   tasks:
     - name: set Vault URL
       set_fact:
-        vault_url: "{{ hostvars['localhost']['vault_url'].stdout }}" 
+        vault_url: "{{ hostvars['localhost']['vault_url'].stdout }}"
+  tags: fetch_configs
 
 - hosts: docker_host
   become: true
@@ -18,9 +20,9 @@
    - role: vpn
      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
    - role: docker
-     user: '{{ ansible_user }}'
+     docker_user: '{{ ansible_user }}'
 
-- hosts: openmrs_cd
+- hosts: openmrs_cd_host
   become: true
   roles:
    - role: common
@@ -28,5 +30,7 @@
    - role: vpn
      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
    - role: docker
-     user: '{{ ansible_user }}'
+     docker_user: '{{ ansible_user }}'
    - role: openmrs_cd
+     nexus_repo_id: "{{ hostvars['localhost']['nexus_repo_id'].stdout }}"
+     nexus_url: "{{ hostvars['localhost']['nexus_url'].stdout }}"

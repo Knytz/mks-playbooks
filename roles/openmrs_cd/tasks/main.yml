@@ -4,22 +4,139 @@
     name: git
     state: latest
 
-- name: clone the OpenMRS CD GitHub repository
+- name: clone the OpenMRS CD GitHub repository in '{{ openmrs_cd_folder }}-source' folder
   git: 
     repo: 'https://github.com/mekomsolutions/openmrs-cd'
-    dest: '{{ openmrs_cd_folder }}'
-    version: master
+    dest: '{{ openmrs_cd_folder }}-source'
+    version: "{{ openmrs_cd_git_version}}"
+    force: yes
+
+- name: copy the Jenkins Home out of the Git repository folder
+  synchronize:
+    src: '{{ openmrs_cd_folder }}-source/jenkins/jenkins_home'
+    dest: '{{ openmrs_cd_folder }}/'
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: set the Jenkins Home mount permissions
+  file:
+    path: '{{ openmrs_cd_folder}}'
+    state: directory
+    owner: 1000
+    group: 1000
+    recurse: yes
+
+- name: install pip (on Amazon Linux 2 only)
+  shell: 'cd /tmp/; curl -O https://bootstrap.pypa.io/get-pip.py; python get-pip.py --user'
+  when: ansible_distribution == 'Amazon' and ansible_distribution_version == '2'
+
+- name: install pip
+  package:
+    name: python-pip
+    state: present
+  when: ansible_distribution != 'Amazon' and ansible_distribution_version != '2'
+
+- name: install pip docker-py package
+  pip:
+    name: docker-py
+    state: present
+
+- name: start container
+  docker_container:
+    name: 'openmrscd'
+    hostname: 'openmrscd'
+    image: "{{ openmrs_cd_repo_user }}/{{ openmrs_cd_image }}:{{ openmrs_cd_image_tag }}"
+    published_ports: '{{ openmrs_cd_port }}:8080'
+    volumes:
+      - '{{ openmrs_cd_folder }}-source/app:/opt/app'
+      - '{{ openmrs_cd_folder }}/jenkins_home:/var/jenkins_home'
+    restart_policy: unless-stopped
+    tty: yes
+    interactive: yes
+    detach: yes
+    state: started
+
+- name: copy the 'monitor_jenkins_api.sh' script
+  template:
+    src: "{{ role_path }}/files/monitor_jenkins_api.sh.j2"
+    dest: "{{ openmrs_cd_folder }}/jenkins_home/monitor_jenkins_api.sh" 
+    mode: 0755
+
+- name: wait for Jenkins API to respond
+  shell: "docker exec -t openmrscd /bin/bash -c \"\\$JENKINS_HOME/monitor_jenkins_api.sh\""
+  register: monitor_jenkins_api_out
+  retries: 15
+  delay: 0
+  until: monitor_jenkins_api_out.rc == 0
 
 - name: log in Vault
   shell: '{{ vault_folder }}/approle-login.sh'
   register: approle_token
 
-- name: run the Docker OpenMRS CD Docker container
-  docker:
-    name: openmrscd
-    ports:
-      - "8080:8080"
-    volumes:
-      - "{{ openmrs_cd_folder }}/app:/opt/app"
-      - "{{ openmrs_cd_folder }}/jenkins/jenkins_home:/var/jenkins_home"
-    image: mekomsolutions/openmrscd:1.0.2-SNAPSHOT
+- name: fetch Nexus credentials from Vault
+  uri:
+    url: '{{ vault_url }}/v1/secret/data/mks/nexus'
+    method: GET
+    status_code: 200
+    body_format: json
+    headers:
+      X-Vault-Token: '{{ approle_token.stdout }}'
+  register: nexus_response
+  
+- name: parse Nexus credentials
+  set_fact:
+    repo_username: '{{ nexus_response.json.data.data.username1 }}'
+    repo_password: '{{ nexus_response.json.data.data.password1 }}'
+    repo_id: '{{ nexus_repo_id }}'
+
+- name: verify that Maven '.m2' folder exists on the container
+  file:
+    path: '{{ openmrs_cd_folder}}/jenkins_home/.m2'
+    state: directory
+
+- name: set the Maven 'settings.xml' file
+  template:
+    src: "{{ role_path }}/files/m2_settings.xml.j2"
+    dest: "{{ openmrs_cd_folder }}/jenkins_home/.m2/settings.xml"
+
+- name: set the 'artifact_repository.json' file
+  template:
+    src: "{{ role_path }}/files/artifact_repository.json.j2"
+    dest: "{{ openmrs_cd_folder }}/jenkins_home/artifact_repository.json"
+
+- name: set the 'artifact_repository.env' file
+  template:
+    src: "{{ role_path }}/files/artifact_repository.env.j2"
+    dest: "{{ openmrs_cd_folder }}/jenkins_home/artifact_repository.env"
+  
+- name: fetch OpenMRS CD credentials from Vault
+  uri:
+    url: '{{ vault_url }}/v1/secret/data/mks/openmrscd'
+    method: GET
+    status_code: 200
+    body_format: json
+    headers:
+      X-Vault-Token: '{{ approle_token.stdout }}'
+  register: openmrscd_response
+  no_log: true
+
+- name: parse OpenMRS CD credentials
+  set_fact:
+    jenkins_username: '{{ openmrscd_response.json.data.data.username1 }}'
+    jenkins_password: '{{ openmrscd_response.json.data.data.password1 }}'
+  no_log: true
+
+- name: copy the 'set_credentials.sh' script
+  template:
+    src: "{{ role_path }}/files/set_credentials.sh.j2"
+    dest: "{{ openmrs_cd_folder }}/jenkins_home/set_credentials.sh" 
+    mode: 0755
+
+- name: set Jenkins credentials (may take a while for Jenkins to fully start)
+  shell: "docker exec -t openmrscd /bin/bash -c \"\\$JENKINS_HOME/set_credentials.sh {{ jenkins_username }} admin {{ jenkins_password }}\""
+  register: set_credentials_out
+  changed_when: set_credentials_out.rc == 101
+  failed_when: (set_credentials_out.rc != 101) and (set_credentials_out.rc != 0)
+  retries: 10
+  delay: 1
+  until: set_credentials_out.rc != 1
+  no_log: true

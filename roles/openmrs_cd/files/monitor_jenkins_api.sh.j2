@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Ensure Jenkins is accessible
+url="{{ jenkins_local_url }}"
+log="/tmp/monitor_jenkins_api.log"
+rm -f "$log"
+java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s "$url" 2> "$log"
+if [ $(cat "$log" | grep "java.net.ConnectException" | wc -l) == "1" ]; then
+  echo "Jenkins API is not accessible"
+  exit 1
+fi

@@ -1,7 +1,7 @@
 ---
 - name: retrieve Vault URL from the configuration service
   uri:
-    url: '{{ vault_config_url }}/vault_url'
+    url: '{{ vault_config_url }}/url'
     method: GET
     status_code: 200
     body_format: json
@@ -29,4 +29,36 @@
   args:
     executable: /bin/bash
   register: openvpn_client_conf_template
+  delegate_to: 127.0.0.1
+
+- name: retrieve Nexus Repo Id from the configuration service
+  uri:
+    url: '{{ nexus_config_url }}/repo_id'
+    method: GET
+    status_code: 200
+    body_format: json
+  register: nexus_repo_id_coded
+  delegate_to: 127.0.0.1
+
+- name: decode base64 response
+  shell: 'echo {{ nexus_repo_id_coded.json[0].Value }} | base64 --decode'
+  args:
+    executable: /bin/bash
+  register: nexus_repo_id
+  delegate_to: 127.0.0.1
+
+- name: retrieve Nexus URL from the configuration service
+  uri:
+    url: '{{ nexus_config_url }}/url'
+    method: GET
+    status_code: 200
+    body_format: json
+  register: nexus_url_coded
+  delegate_to: 127.0.0.1
+
+- name: decode base64 response
+  shell: 'echo {{ nexus_url_coded.json[0].Value }} | base64 --decode'
+  args:
+    executable: /bin/bash
+  register: nexus_url
   delegate_to: 127.0.0.1

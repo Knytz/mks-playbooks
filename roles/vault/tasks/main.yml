@@ -28,9 +28,9 @@
     issue_secret_id: true 
   when: (approle_token.rc != 0)
 
-- name: fail if a 'vault_token' has not been provided
+- name: fail if a 'vault_token' has not been provided or is empty
   debug:
-    msg: "Please provide a Vault Token as 'vault_token=...' as '--extra-vars' when running the Ansible playbook"
+    msg: "Please provide a Vault Token as 'vault_token=...' as '--extra-vars' when running the Ansible playbook, or verify that it is not empty."
   failed_when: (vault_token is not defined) or (vault_token == "")
   when: issue_secret_id
 
