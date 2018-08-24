@@ -1,0 +1,5 @@
+---
+- name: restart OpenVPN
+  service:
+    name: openvpn
+    status: restarted

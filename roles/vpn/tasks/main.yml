@@ -42,6 +42,8 @@
         (chain_stat.stat.exists == false) or
         (cert_check.rc != 0) or
         (force_renew_certs != false)
+  notify:
+    - restart OpenVPN
 
 - name: log in Vault
   shell: '{{ vault_folder }}/approle-login.sh'
@@ -110,6 +112,7 @@
   template:
     src: '/tmp/ansible/{{ inventory_hostname }}/tmp/client.conf.j2'
     dest: '{{ openvpn_folder }}/client.conf'
+  notify: restart OpenVPN
 
 - name: set OpenVPN as a service to start at boot
   service:
