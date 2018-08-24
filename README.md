@@ -59,16 +59,27 @@ Make sure to also export the address of the main Consul server beforehand: CONSU
 export CONSUL_SERVER_ADDR=***.***.***.***
 ```
 
-### 3/ Provide a Vault token (Optional, based on the host group used)
+### 3/ Retrieve a Vault token (Optional, based on the host group used)
 
 Some host groups will require to login to Vault, and therefore have to optain some AppRole credentials from the Vault server. To do so, you need to initially provide a valid Vault token that has access to the AppRole auth backend and the appropriate AppRole role, such as set in the group vars (for instance in [openmrs_cd_host.yml#L2](https://github.com/mekomsolutions/mks-playbooks/blob/01de81fcd111208f572e9f0861a7802c2295fcd4/environments/test/group_vars/openmrs_cd_host.yml#L2) *vault_role: openmrs_cd*)
 
 So with whatever login method suits to your case (Userpass or GitHub), login in Vault,  retrieve your token and export it as VAULT_TOKEN envvar.
 
+### 4/ Fetch the inventory
 
-### 4/ Run the playbook
-Once you have set your target servers (1), started Consul (3), exported your Vault token (2) in your termial, you can run the playbooks using the command:
+Inventory files are not stored in this repo (they are gitignored) but are available through the Consul service. Fetch the inventory file based on your environment:
+
+```
+envtype="test"; curl -s "http://localhost:8500/v1/kv/config/mks-playbooks/inventory/$envtype" | jq .[0].Value | tr -d '"' | base64 --decode >  ./environments/$envtype/hosts.inventory
+```
+
+*If you are running the test environment, verify that the servers IP address in the inventory file are correct. Since the testing environment is using dynamic IPs, you may need to update them*
+*If your are running in a production environment, change 'envtype' to 'prod'*
+
+### 5/ Run the playbook
+Once you have set your target servers (1), started Consul (2), exported your Vault token (3) in your terminal and fetched the inventory (4), you can run the playbooks using the command:
 ```
 ansible-playbooks playbook.yml --extra-vars "vault_token=$VAULT_TOKEN"
 ```
 
+If you are running production environment, add `-i ./environments/prod/hosts.inventory`.
