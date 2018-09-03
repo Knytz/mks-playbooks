@@ -1,5 +1,5 @@
 ---
 - name: restart OpenVPN
   service:
-    name: openvpn
-    status: restarted
+    name: "{{ 'openvpn@client' if ansible_service_mgr == 'systemd' else 'openvpn' }}"
+    state: restarted
