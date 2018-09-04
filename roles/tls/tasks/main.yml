@@ -1,0 +1,45 @@
+- name: log in Vault
+  shell: '{{ vault_folder }}/approle-login.sh'
+  register: approle_token
+
+- name: fetch TLS certificates
+  uri:
+    url: '{{ vault_url }}/v1/secret/data/mks/tls'
+    method: GET
+    status_code: 200
+    body_format: json
+    headers:
+      X-Vault-Token: '{{ approle_token.stdout }}'
+  register: tls_response
+  
+- name: create a keys folder to save certificates
+  file:
+    path: '{{ tls_keys_folder }}'
+    state: directory
+
+- name: create a private folder to save private key
+  file:
+    path: '{{ tls_keys_folder }}/private'
+    state: directory
+
+- name: parse TLS certificates
+  set_fact:
+    godaddy_ca: '{{ tls_response.json.data.data.godaddy_ca_intermediate_crt }}'
+    mekomsolutions_crt: '{{ tls_response.json.data.data.mekomsolutions_net_crt }}'
+    mekomsolutions_key: '{{ tls_response.json.data.data.mekomsolutions_net_key }}'
+
+- name: save GoDaddy ca
+  copy:
+    content: '{{ tls_response.json.data.data.godaddy_ca_intermediate_crt }}'
+    dest: '{{ tls_keys_folder }}/godaddy.ca.intermediate.crt'
+
+- name: save Mekom Solutions certificates
+  copy:
+    content: '{{ tls_response.json.data.data.mekomsolutions_net_crt }}'
+    dest: '{{ tls_keys_folder }}/mekomsolutions.net.crt'
+
+- name: save Mekom Solutions private key
+  copy:
+    content: '{{ tls_response.json.data.data.mekomsolutions_net_key }}'
+    dest: '{{ tls_keys_folder }}/private/mekomsolutions.net.key'
+    mode: 0400
