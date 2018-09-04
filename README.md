@@ -10,7 +10,7 @@ cd mks-playbooks
 ### 1/ Edit the inventory file
 Edit the *hosts* inventory file and set the servers you wish to configure in the group you would like to apply. For instance, to configure a new OpenMRS CD server, add your server in the 'openmrs_cd_host' group:
 
-`nano ./environments/test/hosts`
+`nano ./environments/test/hosts.inventory`
 ```
 [docker_host]
 
