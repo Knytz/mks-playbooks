@@ -57,6 +57,22 @@
 {% if vhost.certificate_chain_file is defined %}
   SSLCertificateChainFile {{ vhost.certificate_chain_file }}
 {% endif %}
+
+{% if vhost.proxy_pass is defined %}
+  ProxyPass {{ vhost.proxy_pass }}
+{% endif %}
+{% if vhost.proxy_pass_reverse is defined %}
+  ProxyPassReverse {{ vhost.proxy_pass_reverse }}
+{% endif %}
+{% if vhost.proxy_requests is defined %}
+  ProxyRequests {{ vhost.proxy_requests }}
+{% endif %}
+{% if vhost.proxy is defined %}
+  <Proxy {{ vhost.proxy }}*>
+    Order {{ vhost.order }}
+    Allow {{ vhost.allow }}
+  </Proxy>
+{% endif %}
   
   AllowEncodedSLashes NoDecode
 

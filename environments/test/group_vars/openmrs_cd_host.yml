@@ -11,3 +11,28 @@ openmrs_cd_port: 8080
 # Default vars that must be overridden in the inventory file, by server:
 ansible_user: centos
 common_name: openmrs_cd_host.vpn.mekomsolutions.net
+
+# geerlingguy.apache role variables
+apache_vhosts:
+  - servername: "http"
+    extra_parameters: |
+      RewriteEngine On
+      RewriteCond %{SERVER_PORT} !^443$
+      RewriteRule ^/(.*) https://%{HTTP_HOST}/$1 [R,L]    
+
+apache_allow_override: "All"
+apache_options: "-Indexes +FollowSymLinks"
+
+apache_vhosts_ssl: 
+  - servername: "test.mekomsolutions.net"
+    serveralias: "server.test"
+    certificate_file: "/etc/ssl/keys/mekomsolutions.net.crt"
+    certificate_key_file: "/etc/ssl/keys/private/mekomsolutions.net.key"
+    certificate_chain_file: "/etc/ssl/keys/godaddy.ca.intermediate.crt"
+
+    proxy_pass: '/ http://localhost:{{ openmrs_cd_port }}/ nocanon'
+    proxy_pass_reverse: '/ http://localhost:{{ openmrs_cd_port }}/'
+    proxy_requests: "Off"
+    proxy: 'http://localhost:{{ openmrs_cd_port }}/'
+    order: 'deny,allow'
+    allow: 'from all'
