@@ -4,6 +4,11 @@
     name: git
     state: latest
 
+- name: install npm package
+  package:
+    name: npm
+    state: latest
+
 - name: clone the OpenMRS CD GitHub repository in '{{ openmrs_cd_folder }}-source' folder
   git: 
     repo: 'https://github.com/mekomsolutions/openmrs-cd'
@@ -11,10 +16,16 @@
     version: "{{ openmrs_cd_git_version}}"
     force: yes
 
+- name: build the OpenMRS CD App
+  npm:
+    path: '{{ openmrs_cd_folder }}-source/app'
+
 - name: copy the Jenkins Home out of the Git repository folder
   synchronize:
     src: '{{ openmrs_cd_folder }}-source/jenkins/jenkins_home'
     dest: '{{ openmrs_cd_folder }}/'
+    delete: yes
+    recursive: yes
   delegate_to: "{{ inventory_hostname }}"
 
 - name: set the Jenkins Home mount permissions
@@ -25,7 +36,15 @@
     group: 1000
     recurse: yes
 
-- name: install pip (on Amazon Linux 2 only)
+- name: create App Data folder and set permissions
+  file:
+    path: '{{ openmrs_cd_folder}}/app_data'
+    state: directory
+    owner: 1000
+    group: 1000
+    recurse: yes
+
+- name: install pip for Amazon Linux 2 (if applicable)
   shell: 'cd /tmp/; curl -O https://bootstrap.pypa.io/get-pip.py; python get-pip.py --user'
   when: ansible_distribution == 'Amazon' and ansible_distribution_version == '2'
 
@@ -40,7 +59,12 @@
     name: docker-py
     state: present
 
-- name: start container
+- name: remove container
+  docker_container:
+    name: 'openmrscd'
+    state: absent
+
+- name: start a fresh container
   docker_container:
     name: 'openmrscd'
     hostname: 'openmrscd'
@@ -49,6 +73,7 @@
     volumes:
       - '{{ openmrs_cd_folder }}-source/app:/opt/app'
       - '{{ openmrs_cd_folder }}/jenkins_home:/var/jenkins_home'
+      - '{{ openmrs_cd_folder }}/app_data:/var/lib/openmrs_cd/app_data'
     restart_policy: unless-stopped
     tty: yes
     interactive: yes
@@ -131,12 +156,9 @@
     dest: "{{ openmrs_cd_folder }}/jenkins_home/set_credentials.sh" 
     mode: 0755
 
-- name: set Jenkins credentials (may take a while for Jenkins to fully start)
+- name: set Jenkins credentials
   shell: "docker exec -t openmrscd /bin/bash -c \"\\$JENKINS_HOME/set_credentials.sh {{ jenkins_username }} admin {{ jenkins_password }}\""
   register: set_credentials_out
   changed_when: set_credentials_out.rc == 101
   failed_when: (set_credentials_out.rc != 101) and (set_credentials_out.rc != 0)
-  retries: 10
-  delay: 1
-  until: set_credentials_out.rc != 1
   no_log: true
