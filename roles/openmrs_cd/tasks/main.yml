@@ -59,12 +59,12 @@
     name: docker-py
     state: present
 
-- name: remove container
+- name: remove existing OpenMRS CD Docker container, if any
   docker_container:
     name: 'openmrscd'
     state: absent
 
-- name: start a fresh container
+- name: "start a new OpenMRS CD Docker container (based on {{ openmrs_cd_image }}:{{ openmrs_cd_image_tag }})"
   docker_container:
     name: 'openmrscd'
     hostname: 'openmrscd'
@@ -161,4 +161,7 @@
   register: set_credentials_out
   changed_when: set_credentials_out.rc == 101
   failed_when: (set_credentials_out.rc != 101) and (set_credentials_out.rc != 0)
+  retries: 10
+  delay: 1
+  until: set_credentials_out.rc != 1
   no_log: true
