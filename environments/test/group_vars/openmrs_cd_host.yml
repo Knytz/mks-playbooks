@@ -13,6 +13,7 @@ ansible_user: centos
 common_name: openmrs_cd_host.vpn.mekomsolutions.net
 
 # geerlingguy.apache role variables
+apache_vhosts_filename: "openmrscd.conf"
 apache_vhosts:
   - servername: "http"
     extra_parameters: |
