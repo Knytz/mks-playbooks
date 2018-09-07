@@ -13,4 +13,4 @@ mks_vpn_pki_chain_name: ca-chain.vpn.mekomsolutions.net
 openvpn_config_url: http://localhost:8500/v1/kv/config/openvpn
 force_renew_certs: false
 nexus_config_url: http://localhost:8500/v1/kv/config/nexus
-RHEL_7_epel_release_repo: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+tls_keys_folder: /etc/ssl/keys

@@ -30,9 +30,14 @@
 
 - name: check if the VPN certificate is soon to expire
   command: 'openssl x509 -checkend {{ mks_vpn_cert_renew_threshold }} -noout -in {{ openvpn_keys_folder }}/{{ common_name }}.crt'
-  register: cert_check
-  changed_when: cert_check.rc != 0
-  failed_when: cert_check.stdout_lines|length > 0
+  register: cert_expiry_check
+  changed_when: cert_expiry_check.rc != 0
+  failed_when: cert_expiry_check.stdout_lines|length > 0
+  when: (cert_stat.stat.exists == True)
+
+- name: retrieve the Common Name of the existing certificate
+  shell: "openssl x509 -noout -subject -nameopt multiline -in /etc/openvpn/keys/{{ common_name }}.crt | sed -n 's/ *commonName *= //p'"
+  register: cert_common_name
   when: (cert_stat.stat.exists == True)
 
 - set_fact:
@@ -40,7 +45,8 @@
   when: (cert_stat.stat.exists == false) or
         (key_stat.stat.exists == false) or
         (chain_stat.stat.exists == false) or
-        (cert_check.rc != 0) or
+        (cert_expiry_check.rc != 0) or
+        (cert_common_name.stdout != common_name) or
         (force_renew_certs != false)
   notify:
     - restart OpenVPN

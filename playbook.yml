@@ -22,6 +22,8 @@
    - role: geerlingguy.docker
      docker_users:
       - '{{ ansible_user }}'
+   - role: tls
+   - role: geerlingguy.apache
 
 - hosts: openmrs_cd_host
   become: true

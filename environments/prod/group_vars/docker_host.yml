@@ -3,4 +3,33 @@ vault_role: docker_host
 
 # Default vars that should be overridden in the inventory file, by server:
 ansible_user: centos
-common_name: docker_host.vpn.mekomsolutions.net
+common_name: docker-host.vpn.mekomsolutions.net
+
+# geerlingguy.apache role variables
+apache_vhosts_filename: "openmrscd.conf"
+apache_vhosts:
+  - servername: "http"
+    extra_parameters: |
+      RewriteEngine On
+      RewriteCond %{SERVER_PORT} !^443$
+      RewriteRule ^/(.*) https://%{HTTP_HOST}/$1 [R,L]    
+
+apache_allow_override: "All"
+apache_options: "-Indexes +FollowSymLinks"
+
+apache_vhosts_ssl: 
+  - servername: "test.mekomsolutions.net"
+    serveralias: "server.test"
+    certificate_file: "/etc/ssl/keys/mekomsolutions.net.crt"
+    certificate_key_file: "/etc/ssl/keys/private/mekomsolutions.net.key"
+    certificate_chain_file: "/etc/ssl/keys/godaddy.ca.intermediate.crt"
+
+# Only used on Debian/Ubuntu
+apache_mods_enabled:
+  - rewrite.load
+  - ssl.load
+  - proxy_http.load
+
+# Variables for pip packages
+pip_install_packages: 
+  - docker-py
