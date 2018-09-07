@@ -44,21 +44,6 @@
     group: 1000
     recurse: yes
 
-- name: install pip for Amazon Linux 2 (if applicable)
-  shell: 'cd /tmp/; curl -O https://bootstrap.pypa.io/get-pip.py; python get-pip.py --user'
-  when: ansible_distribution == 'Amazon' and ansible_distribution_version == '2'
-
-- name: install pip
-  package:
-    name: python-pip
-    state: present
-  when: ansible_distribution != 'Amazon' and ansible_distribution_version != '2'
-
-- name: install pip docker-py package
-  pip:
-    name: docker-py
-    state: present
-
 - name: remove existing OpenMRS CD Docker container, if any
   docker_container:
     name: 'openmrscd'

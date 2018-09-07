@@ -33,6 +33,7 @@
    - role: geerlingguy.docker
      docker_users:
       - '{{ ansible_user }}'
+   - role: geerlingguy.pip
    - role: openmrs_cd
      nexus_repo_id: "{{ hostvars['localhost']['nexus_repo_id'].stdout }}"
      nexus_url: "{{ hostvars['localhost']['nexus_url'].stdout }}"

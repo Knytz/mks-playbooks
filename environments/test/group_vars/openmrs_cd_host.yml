@@ -10,7 +10,7 @@ openmrs_cd_port: 8080
 
 # Default vars that must be overridden in the inventory file, by server:
 ansible_user: centos
-common_name: openmrs_cd_host.vpn.mekomsolutions.net
+common_name: openmrscd-host.vpn.mekomsolutions.net
 
 # geerlingguy.apache role variables
 apache_vhosts_filename: "openmrscd.conf"
@@ -37,3 +37,7 @@ apache_vhosts_ssl:
     proxy: 'http://localhost:{{ openmrs_cd_port }}/'
     order: 'deny,allow'
     allow: 'from all'
+
+# Variables for pip packages
+pip_install_packages: 
+  - docker-py
