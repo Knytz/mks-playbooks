@@ -2,6 +2,11 @@
 
 Automatically deploy and maintain MKS servers using a set of roles and server groups.
 
+Supported platforms are:
+- Amazon Linux AMI
+- Amazon Linux 2
+- RHEL 7 based version (tested only on CentOS 7)
+
 ## Basic use with the test environment
 ```
 git clone https://github.com/mekomsolutions/mks-playbooks
