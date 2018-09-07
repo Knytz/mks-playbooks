@@ -38,6 +38,12 @@ apache_vhosts_ssl:
     order: 'deny,allow'
     allow: 'from all'
 
+# Only used on Debian/Ubuntu
+apache_mods_enabled:
+  - rewrite.load
+  - ssl.load
+  - proxy_http.load
+
 # Variables for pip packages
 pip_install_packages: 
   - docker-py
