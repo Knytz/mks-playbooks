@@ -4,11 +4,6 @@
     name: git
     state: latest
 
-- name: install npm package
-  package:
-    name: npm
-    state: latest
-
 - name: clone the OpenMRS CD GitHub repository in '{{ openmrs_cd_folder }}-source' folder
   git: 
     repo: 'https://github.com/mekomsolutions/openmrs-cd'
