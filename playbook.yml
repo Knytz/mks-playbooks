@@ -6,7 +6,10 @@
   tags: fetch_configs
 
 - hosts: all
-  tasks:
+  tasks: 
+    - fail:
+        msg: "Run this playbook with CentOS 7"
+      when: ansible_distribution != 'CentOS' and ansible_distribution_major_version != '7'
     - name: set Vault URL
       set_fact:
         vault_url: "{{ hostvars['localhost']['vault_url'].stdout }}"
@@ -15,30 +18,30 @@
 - hosts: docker_host
   become: true
   roles:
-   - role: common
-   - role: vault
-   - role: vpn
-     conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
-   - role: geerlingguy.docker
-     docker_users:
+    - role: common
+    - role: vault
+    - role: vpn
+      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
+    - role: geerlingguy.docker
+      docker_users:
       - '{{ ansible_user }}'
-   - role: tls
-   - role: geerlingguy.apache
+    - role: tls
+    - role: geerlingguy.apache
 
 - hosts: openmrs_cd_host
   become: true
   roles:
-   - role: common
-   - role: vault
-   - role: vpn
-     conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
-   - role: geerlingguy.docker
-     docker_users:
+    - role: common
+    - role: vault
+    - role: vpn
+      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
+    - role: geerlingguy.docker
+      docker_users:
       - '{{ ansible_user }}'
-   - role: geerlingguy.pip
-   - role: geerlingguy.nodejs
-   - role: openmrs_cd
-     nexus_repo_id: "{{ hostvars['localhost']['nexus_repo_id'].stdout }}"
-     nexus_url: "{{ hostvars['localhost']['nexus_url'].stdout }}"
-   - role: tls
-   - role: geerlingguy.apache
+    - role: geerlingguy.pip
+    - role: geerlingguy.nodejs
+    - role: tls
+    - role: geerlingguy.apache
+    - role: openmrs_cd
+      nexus_repo_id: "{{ hostvars['localhost']['nexus_repo_id'].stdout }}"
+      nexus_url: "{{ hostvars['localhost']['nexus_url'].stdout }}"
