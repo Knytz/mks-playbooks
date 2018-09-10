@@ -1,8 +1,4 @@
 ---
-- set_fact:
-    ansible_distribution_major_version: '{{ amazon2_RHEL_base_version }}'
-  when: ansible_distribution == 'Amazon' and ansible_distribution_version == '2'
-
 - name: Check if EPEL repo is already configured.
   stat: path={{ epel_repofile_path }}
   register: epel_repofile_result

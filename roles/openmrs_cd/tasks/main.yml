@@ -39,10 +39,6 @@
     group: 1000
     recurse: yes
 
-- name: "pull Docker image '{{ openmrs_cd_image }}:{{ openmrs_cd_image_tag }}'"
-  docker_image:
-    name: "{{ openmrs_cd_repo_user }}/{{ openmrs_cd_image }}:{{ openmrs_cd_image_tag }}"
-
 - name: remove existing OpenMRS CD Docker container, if any
   docker_container:
     name: 'openmrscd'
