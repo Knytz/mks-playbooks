@@ -5,6 +5,11 @@
     state: present
     update_cache: yes
 
+- name: install Epel release
+  include_role:
+    name: geerlingguy.repo-epel
+  when: ansible_os_family == 'RedHat'
+
 - name: install 'nano' package
   package:
     name: nano
@@ -19,8 +24,3 @@
   package:
     name: jq
     state: present
-
-- name: install Epel release
-  include_role:
-    name: geerlingguy.repo-epel
-  when: ansible_os_family == 'RedHat'
