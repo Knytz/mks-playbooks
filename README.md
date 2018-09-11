@@ -51,15 +51,18 @@ nexus_config_url: http://localhost:8500/v1/kv/config/nexus
 ...
 ```
 
-In this case the Consul service is documented to be available at localhost:8500. Therefore you need to make sure you are running a Consul agent locally (as part of the Consul cluster):
+In this case the config service (Consul) is documented to be available at localhost:8500. Therefore you need to make sure you are running a Consul agent locally (as part of the Consul cluster):
+Make sure to export the address of the main Consul server beforehand: CONSUL_SERVER_ADDR.
+
+*Ask MKS technical team to prodide you with this address*
 
 ```
-docker run --rm --net=host --label type=prod --name consul-ui -e 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}' consul:1.2.2 agent -join=$CONSUL_SERVER_ADDR -bind='{{ GetInterfaceIP "tun0"}}' -ui
-```
-Note that you must be connected to the Consul cluster network to successfully run this command.
-Make sure to also export the address of the main Consul server beforehand: CONSUL_SERVER_ADDR (ask to MKS technical team to prodide this address):
-```
 export CONSUL_SERVER_ADDR=***.***.***.***
+```
+
+Run the Consul agent locally:
+```
+docker run --rm --net=host --label type=prod --name consul-ui -e 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}' consul:1.2.2 agent -join=$CONSUL_SERVER_ADDR -bind='{{ GetInterfaceIP "tun0"}}' -ui
 ```
 
 ### 3/ Retrieve a Vault token (Optional, based on the host group used)
