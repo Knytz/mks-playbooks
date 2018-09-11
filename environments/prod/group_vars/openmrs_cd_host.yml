@@ -4,7 +4,7 @@ openmrs_cd_folder: /opt/openmrs-cd
 openmrs_cd_repo_user: mekomsolutions
 openmrs_cd_git_version: master
 openmrs_cd_image: openmrscd
-openmrs_cd_image_tag: 1.0.2-SNAPSHOT
+openmrs_cd_image_tag: latest
 jenkins_local_url: http://localhost:8080
 openmrs_cd_port: 8080
 
