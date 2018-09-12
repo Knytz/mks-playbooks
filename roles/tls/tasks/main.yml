@@ -31,7 +31,7 @@
 - name: save GoDaddy ca
   copy:
     content: '{{ tls_response.json.data.data.godaddy_ca_intermediate_crt }}'
-    dest: '{{ tls_keys_folder }}/godaddy.ca.intermediate.crt'
+    dest: '{{ tls_keys_folder }}/godaddy_ca_intermediate.crt'
 
 - name: save Mekom Solutions certificates
   copy:
