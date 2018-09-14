@@ -60,6 +60,14 @@
     detach: yes
     state: started
 
+- name: Allow web services to access port '{{ openmrs_cd_port }}'
+  seport:
+    ports: '{{ openmrs_cd_port }}'
+    proto: tcp
+    setype: http_port_t
+    state: present
+  notify: restart apache
+
 - name: copy the 'monitor_jenkins_api.sh' script
   template:
     src: "{{ role_path }}/files/monitor_jenkins_api.sh.j2"

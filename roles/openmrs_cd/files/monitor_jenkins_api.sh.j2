@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ensure Jenkins is accessible
-url="{{ jenkins_local_url }}"
+url="http://localhost:8080"
 log="/tmp/monitor_jenkins_api.log"
 java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s "$url" 2> "$log"
 if [ $(cat "$log" | grep "Error" | wc -l) == "1" ]; then

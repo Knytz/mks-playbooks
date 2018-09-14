@@ -5,8 +5,7 @@ openmrs_cd_repo_user: mekomsolutions
 openmrs_cd_git_version: master
 openmrs_cd_image: openmrscd
 openmrs_cd_image_tag: latest
-jenkins_local_url: http://localhost:8080
-openmrs_cd_port: 8080
+openmrs_cd_port: 8132 # Due to a SELinux policy that already uses 8080 by default, use 8100-8999 port
 
 # Default vars that must be overridden in the inventory file, by server:
 ansible_user: centos

@@ -48,8 +48,7 @@
         (cert_expiry_check.rc != 0) or
         (cert_common_name.stdout != common_name) or
         (force_renew_certs != false)
-  notify:
-    - restart OpenVPN
+  notify: restart OpenVPN
 
 - name: log in Vault
   shell: '{{ vault_folder }}/approle-login.sh'
