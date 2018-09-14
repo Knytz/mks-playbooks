@@ -1,0 +1,68 @@
+---
+- name: fetch AWS API key from Vault
+  uri:
+    url: '{{ vault_url.stdout }}/v1/secret/data/mks/aws'
+    method: GET
+    status_code: 200
+    body_format: json
+    headers:
+      X-Vault-Token: '{{ vault_token }}'
+  register: aws_response
+  no_log: true
+
+- name: parse AWS API credentials
+  set_fact:
+    aws_api_key: '{{ aws_response.json.data.data.api_key1 }}'
+    aws_api_secret: '{{ aws_response.json.data.data.api_secret1 }}'
+  no_log: true
+
+- name: create temporary folder to download Terraform archive
+  file:
+    path: "{{ terraform_install_directory }}"
+    state: directory
+
+- name: fetch Terraform binary archive
+  get_url:
+    url: "{{ terraform_zipfile_download_url }}"
+    dest: "{{ terraform_install_directory }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+    checksum: "sha256:{{ terraform_zipfile_sha256 }}"
+
+- name: create temporary folder to install Terraform
+  file:
+    path: "{{ terraform_install_directory }}/bin"
+    state: directory
+
+- name: extract Terraform archive
+  unarchive:
+    src: "{{ terraform_install_directory }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+    dest: "{{ terraform_install_directory }}/bin/"
+    remote_src: yes
+
+- name: '{{ action }} the testing infrastructure (this could take few minutes)'
+  terraform:
+    binary_path: '{{ terraform_install_directory }}/bin/terraform'
+    project_path: '{{ playbook_dir }}/roles/terraform/files'
+    state: "{{ state }}"
+    force_init: true 
+    variables:
+      aws_api_key: "{{ aws_api_key }}"
+      aws_api_secret: "{{ aws_api_secret }}"
+  register: terraform
+
+- name: ensure new hosts are known hosts
+  shell: "ssh-keyscan {{ item.value.ip }} >> ~/.ssh/known_hosts"
+  register: keyscan
+  failed_when: '"Connection reset by peer" in keyscan.stderr'
+  retries: 15
+  loop: "{{ terraform.outputs | json_query('*') }}"
+  when: state == 'present'
+
+- name: dynamically add the new hosts to the inventory
+  add_host:
+    groups: "{{ item.value.group }}"
+    name: "{{ item.value.ip }}"
+    ansible_user: "{{ item.value.user }}"
+    common_name: "{{ item.value.common_name }}"
+    domain_name: "{{ item.value.domain_name }}"
+  loop: "{{ terraform.outputs | json_query('*') }}"
+  when: state == 'present'
