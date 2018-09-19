@@ -28,7 +28,7 @@
         vault_url: "{{ hostvars['localhost']['vault_url'].stdout }}"
   tags: fetch_configs
 
-- hosts: docker_host
+- hosts: common
   become: true
   roles:
     - role: common
@@ -40,22 +40,17 @@
       - '{{ ansible_user }}'
     - role: tls
     - role: geerlingguy.apache
+
+- hosts: docker_host
+  become: true
+  roles:
     - role: ssh
 
 - hosts: openmrs_cd_host
   become: true
   roles:
-    - role: common
-    - role: vault
-    - role: vpn
-      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
-    - role: geerlingguy.docker
-      docker_users:
-      - '{{ ansible_user }}'
     - role: geerlingguy.pip
     - role: geerlingguy.nodejs
-    - role: tls
-    - role: geerlingguy.apache
     - role: openmrs_cd
       nexus_repo_id: "{{ hostvars['localhost']['nexus_repo_id'].stdout }}"
       nexus_url: "{{ hostvars['localhost']['nexus_url'].stdout }}"
