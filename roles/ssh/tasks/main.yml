@@ -1,0 +1,88 @@
+---
+- name: check if the SSH private key is already present
+  stat:
+    path: '{{ ssh_key_path }}/{{ common_name }}'
+  register: key_stat
+
+- name: check if the SSH public key is already present
+  stat:
+    path: '{{ ssh_key_path }}/{{ common_name }}.pub'
+  register: pub_stat
+
+- name: check if the signed cert is already present
+  stat:
+    path: '{{ ssh_key_path }}/{{ common_name }}-cert.crt'
+  register: cert_stat
+
+- set_fact:
+    generate_keys: false
+    sign_cert: false
+
+- set_fact:
+    generate_keys: true
+  when: (key_stat.stat.exists == false) or
+        (pub_stat.stat.exists == false) or
+        (force_renew_certs != false)
+
+- set_fact:
+    sign_cert: true
+  when: (cert_stat.stat.exists == false and
+    pub_stat.stat.exists == true and
+    key_stat.stat.exists == true) or
+    force_renew_certs != false or
+    generate_keys == true
+
+- name: "ensure '{{ ssh_key_path }}' is created"
+  file:
+    path: '{{ ssh_key_path }}'
+    state: directory
+    owner: 1000
+
+- name: generate a key pair
+  shell: "ssh-keygen -N '' -f {{ ssh_key_path }}/{{ common_name }}; chown 1000:1000 {{ ssh_key_path }}/{{ common_name }}*"
+  when: generate_keys == true
+
+- name: save the public key as variable
+  shell: "cat {{ ssh_key_path }}/{{ common_name }}.pub"
+  register: public_key
+  when: sign_cert == true
+
+- name: log in Vault
+  shell: '{{ vault_folder }}/approle-login.sh'
+  register: approle_token
+  when: sign_cert == true
+
+- name: "sign the public key with the '{{ ssh_type }}' SSH Vault backend"
+  uri:
+    url: '{{ vault_url }}/v1/ssh-{{ ssh_type }}/sign/default'
+    status_code: 200
+    method: POST
+    body_format: json
+    body:
+      cert_type: "{{ 'user' if ssh_type == 'client' else ssh_type }}"
+      public_key: '{{ public_key.stdout }}'
+      extension:
+        permit-pty": ""
+    headers:
+      X-Vault-Token: '{{ approle_token.stdout }}'
+  register: ssh_response
+  when: sign_cert == true
+
+- name: save the signed cert
+  copy:
+    content: "{{ ssh_response.json.data.signed_key }}"
+    dest: "{{ ssh_key_path }}/{{ common_name }}-cert.crt"
+    owner: 1000
+    group: 1000
+  when: sign_cert == true
+
+- name: "retrieve the ssh-{{ 'client' if ssh_type == 'host' else 'host' }} authority"
+  uri:
+    url: "{{ vault_url }}/v1/ssh-{{ 'client' if ssh_type == 'host' else 'host' }}/public_key"
+    status_code: 200
+    method: GET
+    body_format: json
+    return_content: yes
+  register: authority
+
+- include_tasks: setup-{{ ssh_type }}.yml

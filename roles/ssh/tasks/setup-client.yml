@@ -1,0 +1,22 @@
+---
+- name: ensure 'known_hosts' exists
+  copy:
+    content: ""
+    dest: "{{ ssh_key_path }}/known_hosts"
+    force: no
+    group: 1000
+    owner: 1000
+
+- name: add authority to known hosts
+  lineinfile:
+    path: "{{ ssh_key_path }}/known_hosts"
+    state: present
+    regexp: '^\@cert-authority'
+    line: "@cert-authority  *.vpn.mekomsolutions.net {{ authority.content }}"
+
+- name: copy user specific SSH config file
+  template:
+    src: "{{ role_path }}/files/ssl.config.j2"
+    dest: "{{ ssh_key_path }}/config"
+    owner: 1000
+    group: 1000

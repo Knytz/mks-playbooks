@@ -1,0 +1,31 @@
+---
+- name: save ssh-client authority
+  copy:
+    content: "{{ authority.content }}"
+    dest: "{{ ssh_key_path }}/ssh_client.ca.crt"
+
+- name: set host private key in SSHD configuration
+  lineinfile:
+    path: "{{ sshd_config_path }}"
+    regexp: 'HostKey='
+    state: present
+    line: "HostKey={{ ssh_key_path }}/{{ common_name }}"
+
+- name: set signed host certificate in SSHD configuration
+  lineinfile:
+    path: "{{ sshd_config_path }}"
+    regexp: 'HostCertificate='
+    state: present
+    line: "HostCertificate={{ ssh_key_path }}/{{ common_name }}-cert.crt"
+
+- name: set ssh-client authority as TrustedUserCAKeys
+  lineinfile:
+    path: '{{ sshd_config_path }}'
+    regexp: 'TrustedUserCAKeys'
+    state: present
+    line: "TrustedUserCAKeys {{ ssh_key_path }}/ssh_client.ca.crt"
+
+- name: restart SSHD service
+  service:
+    name: sshd
+    state: restarted

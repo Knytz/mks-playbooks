@@ -48,3 +48,7 @@ pip_install_packages:
   - docker-py
 
 nodejs_version: "8.x"
+
+# SSH role vars
+ssh_key_path: /opt/openmrs-cd/jenkins_home/.ssh
+ssh_type: client

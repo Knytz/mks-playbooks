@@ -30,7 +30,7 @@ if [[ "$status" = "200" ]] ; then
   VAULT_TOKEN=$(cat $response | jq .auth.client_token)
   echo $VAULT_TOKEN | tr -d '"'
 else
-  echo "[ERROR] $(date) - Unable to rotate/renew the CRL (non 200 HTTP status code)" >> $log
+  echo "[ERROR] $(date) - Unable to log in Vault (non 200 response)" >> $log
   cat $response >> $log
   echo "Returned HTTP/2: $status" >> $log
   exit 1

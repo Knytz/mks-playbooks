@@ -40,6 +40,7 @@
       - '{{ ansible_user }}'
     - role: tls
     - role: geerlingguy.apache
+    - role: ssh
 
 - hosts: openmrs_cd_host
   become: true
@@ -58,6 +59,7 @@
     - role: openmrs_cd
       nexus_repo_id: "{{ hostvars['localhost']['nexus_repo_id'].stdout }}"
       nexus_url: "{{ hostvars['localhost']['nexus_url'].stdout }}"
+    - role: ssh
 
 - name: flush the testing infrastructure
   hosts: localhost
