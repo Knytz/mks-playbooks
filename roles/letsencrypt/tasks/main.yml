@@ -1,0 +1,97 @@
+---
+- name: add Let's Encrypt repository
+  git:
+    repo: https://github.com/certbot/certbot
+    dest: /opt/certbot/
+
+- name: create directory to save valid certificates
+  file:
+    path: '{{ le_tls_keys_folder }}/'
+    state: directory
+
+- name: check if the certificate is already present
+  stat:
+    path: "{{ le_tls_keys_folder }}/cert.pem"
+  register: cert_stat
+
+- name: check if the  private key is already present
+  stat:
+    path: "{{ le_tls_keys_folder }}/privkey.pem"
+  register: key_stat
+
+- name: check if the CA is already present
+  stat:
+    path: "{{ le_tls_keys_folder }}/chain.pem"
+  register: chain_stat
+
+- set_fact:
+    create_symlink: false
+
+- set_fact:
+    create_symlink: true
+  when: (cert_stat.stat.exists == false) or
+        (key_stat.stat.exists == false) or
+        (chain_stat.stat.exists == false)
+
+- name: create Symlink for invalid certificate
+  file:
+    src: "{{ invalid_tls_keys_folder }}/cert.pem"
+    dest: "{{ le_tls_keys_folder }}/cert.pem"
+    state: link
+    force: yes
+  when: create_symlink
+
+- name: create Symlink for invalid chain
+  file:
+    src: "{{ invalid_tls_keys_folder }}/chain.pem"
+    dest: "{{ le_tls_keys_folder }}/chain.pem"
+    state: link
+    force: yes
+  when: create_symlink
+
+- name: create Symlink for invalid private key
+  file:
+    src: "{{ invalid_tls_keys_folder }}/privkey.pem"
+    dest: "{{ le_tls_keys_folder }}/privkey.pem"
+    state: link
+    force: yes
+  when: create_symlink
+
+- name: create directory to save certificates (apache)
+  file:
+    path: '{{ tls_keys_folder }}/'
+    state: directory
+
+- name: create Symlink for apache (certificates)
+  file:
+    src: "{{ le_tls_keys_folder }}/cert.pem"
+    dest: "{{ tls_keys_folder }}/cert.pem"
+    state: link
+    force: yes
+
+- name: create Symlink for apache (chain)
+  file:
+    src: "{{ le_tls_keys_folder }}/chain.pem"
+    dest: "{{ tls_keys_folder }}/chain.pem"
+    state: link
+    force: yes
+
+- name: create Symlink for apache (private key)
+  file:
+    src: "{{ le_tls_keys_folder }}/privkey.pem"
+    dest: "{{ tls_keys_folder }}/privkey.pem"
+    state: link
+    force: yes
+
+- name: ensure log directory has created
+  file:
+    path: '/var/log/letsencrypt/'
+    state: directory
+
+- name: add job to create or renew a certificates
+  cron:
+    name: create_or_renew_certs
+    minute: 0
+    hour: 12
+    user: root
+    job: /opt/certbot/certbot-auto --standalone --noninteractive --agree-tos --pre-hook "systemctl stop httpd.service" --post-hook "systemctl start httpd.service" --email {{ email }} --server {{ acme_api }} certonly -d {{ domain_name }} &>> /var/log/letsencrypt/certbot.log

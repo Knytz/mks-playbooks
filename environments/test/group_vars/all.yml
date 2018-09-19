@@ -13,4 +13,9 @@ mks_vpn_pki_chain_name: ca-chain.vpn.mekomsolutions.net
 openvpn_config_url: http://localhost:8500/v1/kv/config/openvpn
 force_renew_certs: false
 nexus_config_url: http://localhost:8500/v1/kv/config/nexus
-tls_keys_folder: /etc/ssl/keys
+vault_intermediate_key_name: letsencrypt_intermediate_ca
+vault_certificate_key_name: letsencrypt_certificate_crt
+vault_privatekey_key_name: letsencrypt_private_key
+invalid_tls_keys_folder: /etc/ssl/invalid-cert.mekomsolutions.net
+le_tls_keys_folder: /etc/letsencrypt/live/{{ domain_name }}
+tls_keys_folder: /etc/ssl/{{ domain_name }}

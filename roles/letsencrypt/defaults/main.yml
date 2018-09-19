@@ -1,0 +1,8 @@
+---
+# Production v1: https://acme-v01.api.letsencrypt.org/directory
+# Staging v1: https://acme-staging.api.letsencrypt.org/directory
+# Production v2: https://acme-v02.api.letsencrypt.org/directory
+# Staging v2: https://acme-staging-v02.api.letsencrypt.org/directory
+acme_api: 'https://acme-staging-v02.api.letsencrypt.org/directory'
+domain_name: 'domain.com'
+email: 'example@mail.com'

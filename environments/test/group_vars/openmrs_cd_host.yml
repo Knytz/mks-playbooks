@@ -26,9 +26,10 @@ apache_options: "-Indexes +FollowSymLinks"
 apache_vhosts_ssl: 
   - servername: "test.mekomsolutions.net"
     serveralias: "server.test"
-    certificate_file: "/etc/ssl/keys/mekomsolutions.net.crt"
-    certificate_key_file: "/etc/ssl/keys/private/mekomsolutions.net.key"
-    certificate_chain_file: "/etc/ssl/keys/godaddy_ca_intermediate.crt"
+
+    certificate_file: "{{ tls_keys_folder }}/cert.pem"
+    certificate_key_file: "{{ tls_keys_folder }}/privkey.pem"
+    certificate_chain_file: "{{ tls_keys_folder }}/chain.pem"
 
     proxy_pass: '/ http://localhost:{{ openmrs_cd_port }}/ nocanon'
     proxy_pass_reverse: '/ http://localhost:{{ openmrs_cd_port }}/'
@@ -52,3 +53,7 @@ nodejs_version: "8.x"
 # SSH role vars
 ssh_key_path: /opt/openmrs-cd/jenkins_home/.ssh
 ssh_type: client
+
+# Variables for Let's Encrypt
+acme_api: 'https://acme-staging-v02.api.letsencrypt.org/directory'
+domain_name: infra-89.mekomsolutions.net

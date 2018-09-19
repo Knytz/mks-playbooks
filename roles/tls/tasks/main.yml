@@ -2,7 +2,7 @@
   shell: '{{ vault_folder }}/approle-login.sh'
   register: approle_token
 
-- name: fetch TLS certificates
+- name: fetch invalid TLS certificates
   uri:
     url: '{{ vault_url }}/v1/secret/data/mks/tls'
     method: GET
@@ -11,35 +11,61 @@
     headers:
       X-Vault-Token: '{{ approle_token.stdout }}'
   register: tls_response
+  no_log: true
   
-- name: create a keys folder to save certificates
+- name: create a keys folder to save invalid certificates
   file:
-    path: '{{ tls_keys_folder }}'
+    path: '{{ invalid_tls_keys_folder }}/'
     state: directory
 
-- name: create a private folder to save private key
-  file:
-    path: '{{ tls_keys_folder }}/private'
-    state: directory
-
-- name: parse TLS certificates
+- name: parse invalid TLS certificates
   set_fact:
-    godaddy_ca: '{{ tls_response.json.data.data.godaddy_ca_intermediate_crt }}'
-    mekomsolutions_crt: '{{ tls_response.json.data.data.mekomsolutions_net_crt }}'
-    mekomsolutions_key: '{{ tls_response.json.data.data.mekomsolutions_net_key }}'
+    intermediate_ca: '{{ tls_response.json.data.data[vault_intermediate_key_name] }}'
+    certificate: '{{ tls_response.json.data.data[vault_certificate_key_name] }}'
+    private_key: '{{ tls_response.json.data.data[vault_privatekey_key_name] }}'
+  no_log: true
 
-- name: save GoDaddy ca
+- name: save Let's Encrypt invalid ca
   copy:
-    content: '{{ tls_response.json.data.data.godaddy_ca_intermediate_crt }}'
-    dest: '{{ tls_keys_folder }}/godaddy_ca_intermediate.crt'
+    content: '{{ intermediate_ca }}'
+    dest: '{{ invalid_tls_keys_folder }}/chain.pem'
+  no_log: true
 
-- name: save Mekom Solutions certificates
+- name: save Let's Encrypt invalid certificates
   copy:
-    content: '{{ tls_response.json.data.data.mekomsolutions_net_crt }}'
-    dest: '{{ tls_keys_folder }}/mekomsolutions.net.crt'
+    content: '{{ certificate }}'
+    dest: '{{ invalid_tls_keys_folder }}/cert.pem'
+  no_log: true
 
-- name: save Mekom Solutions private key
+- name: save Let's Encrypt invalid private key
   copy:
-    content: '{{ tls_response.json.data.data.mekomsolutions_net_key }}'
-    dest: '{{ tls_keys_folder }}/private/mekomsolutions.net.key'
+    content: '{{ private_key }}'
+    dest: '{{ invalid_tls_keys_folder }}/privkey.pem'
     mode: 0400
+  no_log: true
+
+- name: create a folder to create symlink for apache's TLS keys
+  file:
+    path: '{{ tls_keys_folder }}/'
+    state: directory
+
+- name: create Symlink for invalid certificate (apache)
+  file:
+    src: "{{ invalid_tls_keys_folder }}/cert.pem"
+    dest: "{{ tls_keys_folder }}/cert.pem"
+    state: link
+    force: yes
+  
+- name: create Symlink for invalid chain
+  file:
+    src: "{{ invalid_tls_keys_folder }}/chain.pem"
+    dest: "{{ tls_keys_folder }}/chain.pem"
+    state: link
+    force: yes
+  
+- name: create Symlink for invalid private key
+  file:
+    src: "{{ invalid_tls_keys_folder }}/privkey.pem"
+    dest: "{{ tls_keys_folder }}/privkey.pem"
+    state: link
+    force: yes

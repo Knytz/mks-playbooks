@@ -39,6 +39,7 @@
       docker_users:
       - '{{ ansible_user }}'
     - role: tls
+    - role: letsencrypt
     - role: geerlingguy.apache
 
 - hosts: docker_host

@@ -20,9 +20,10 @@ apache_options: "-Indexes +FollowSymLinks"
 apache_vhosts_ssl: 
   - servername: "test.mekomsolutions.net"
     serveralias: "server.test"
-    certificate_file: "/etc/ssl/keys/mekomsolutions.net.crt"
-    certificate_key_file: "/etc/ssl/keys/private/mekomsolutions.net.key"
-    certificate_chain_file: "/etc/ssl/keys/godaddy_ca_intermediate.crt"
+
+    certificate_file: "{{ tls_keys_folder }}/cert.pem"
+    certificate_key_file: "{{ tls_keys_folder }}/privkey.pem"
+    certificate_chain_file: "{{ tls_keys_folder }}/chain.pem"
 
 # Only used on Debian/Ubuntu
 apache_mods_enabled:
@@ -37,3 +38,9 @@ pip_install_packages:
 # SSH role vars
 ssh_key_path: /etc/ssh
 ssh_type: host
+
+nodejs_version: "8.x"
+
+# Variables for Let's Encrypt
+acme_api: 'https://acme-v02.api.letsencrypt.org/directory'
+domain_name: prod.mekomsolutions.net
