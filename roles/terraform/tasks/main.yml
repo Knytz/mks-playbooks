@@ -49,6 +49,9 @@
       aws_api_secret: "{{ aws_api_secret }}"
   register: terraform
 
+- name: wait for 20 seconds for SSHD to start
+  wait_for: timeout=20
+
 - name: ensure new hosts are known hosts
   shell: "ssh-keyscan {{ item.value.ip }} >> ~/.ssh/known_hosts"
   register: keyscan
