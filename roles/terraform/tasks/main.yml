@@ -49,17 +49,6 @@
       aws_api_secret: "{{ aws_api_secret }}"
   register: terraform
 
-- name: wait for 20 seconds for SSHD to start
-  wait_for: timeout=20
-
-- name: ensure new hosts are known hosts
-  shell: "ssh-keyscan {{ item.value.ip }} >> ~/.ssh/known_hosts"
-  register: keyscan
-  failed_when: '"Connection reset by peer" in keyscan.stderr'
-  retries: 15
-  loop: "{{ terraform.outputs | json_query('*') }}"
-  when: state == 'present'
-
 - name: dynamically add the new hosts to the inventory
   add_host:
     groups: "{{ item.value.group }}"
@@ -67,5 +56,19 @@
     ansible_user: "{{ item.value.user }}"
     common_name: "{{ item.value.common_name }}"
     domain_name: "{{ item.value.domain_name }}"
+  loop: "{{ terraform.outputs | json_query('*') }}"
+  when: state == 'present'
+
+- name: wait for SSH connection to be available
+  command: "nc -z {{ item }} {{ ansible_port | default('22') }}"
+  retries: 10
+  with_items: "{{ groups['all'] }}"
+  when: state == 'present'
+
+- name: ensure new hosts are known hosts
+  shell: "ssh-keyscan {{ item.value.ip }} >> ~/.ssh/known_hosts"
+  register: keyscan
+  failed_when: '"Connection reset by peer" in keyscan.stderr'
+  retries: 15
   loop: "{{ terraform.outputs | json_query('*') }}"
   when: state == 'present'

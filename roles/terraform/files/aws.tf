@@ -22,8 +22,8 @@ resource "aws_instance" "openmrs_cd_host" {
     Owner = "${data.aws_caller_identity.current.user_id}",
     Group = "openmrs_cd_host",
     User = "centos",
-    Common_Name = "test.vpn.mekomsolutions.net",
-    Domain_Name = "test.mekomsolutions.net"
+    Common_Name = "openmrs-cd.test.vpn.mekomsolutions.net",
+    Domain_Name = "openmrs-cd.test.mekomsolutions.net"
   }
 }
 
@@ -41,8 +41,8 @@ resource "aws_instance" "docker_host" {
     Owner = "${data.aws_caller_identity.current.user_id}",
     Group = "docker_host",
     User = "centos",
-    Common_Name = "test.vpn.mekomsolutions.net",
-    Domain_Name = "test.mekomsolutions.net"
+    Common_Name = "docker-host-01.test.vpn.mekomsolutions.net",
+    Domain_Name = "docker-host-01.test.mekomsolutions.net"
   }
 }
 

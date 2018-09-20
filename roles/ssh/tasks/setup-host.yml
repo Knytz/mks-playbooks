@@ -25,7 +25,22 @@
     state: present
     line: "TrustedUserCAKeys {{ ssh_key_path }}/ssh_client.ca.crt"
 
+- name: set ssh-client authority in authorized_keys
+  blockinfile:
+    path: '/home/{{ ansible_user}}/.ssh/authorized_keys'
+    regexp: '{{ authority.content }}'
+    state: present
+    block: |
+      # 'ssh-client' Vault profile authority
+      cert-authority {{ authority.content }}
+
 - name: restart SSHD service
   service:
     name: sshd
     state: restarted
+
+- name: SSH fingerprint has changed, add the new host fingerprint in localhost's 'known_hosts'
+  shell: "ssh-keygen -R {{ inventory_hostname }}; ssh-keyscan {{ inventory_hostname }} >> ~/.ssh/known_hosts"
+  register: keyscan
+  delegate_to: localhost
+  become: false
