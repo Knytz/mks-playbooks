@@ -1,9 +1,4 @@
 ---
-- name: install Git package
-  package:
-    name: git
-    state: latest
-
 - name: clone the OpenMRS CD GitHub repository in '{{ openmrs_cd_folder }}-source' folder
   git: 
     repo: 'https://github.com/mekomsolutions/openmrs-cd'

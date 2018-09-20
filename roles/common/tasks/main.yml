@@ -24,3 +24,8 @@
   package:
     name: jq
     state: present
+
+- name: install 'git' package
+  package:
+    name: git
+    state: present
