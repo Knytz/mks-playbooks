@@ -8,11 +8,13 @@
     owner: 1000
 
 - name: add authority to known hosts
-  lineinfile:
+  blockinfile:
     path: "{{ ssh_key_path }}/known_hosts"
-    state: present
     regexp: '^\@cert-authority'
-    line: "@cert-authority  *.vpn.mekomsolutions.net {{ authority.content }}"
+    state: present
+    block: |
+      # 'ssh-host' Vault profile authority
+      @cert-authority  *.vpn.mekomsolutions.net {{ authority.content }}
 
 - name: copy user specific SSH config file
   template:

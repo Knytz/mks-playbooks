@@ -39,6 +39,12 @@
     name: 'openmrscd'
     state: absent
 
+- name: "pull '{{ openmrs_cd_image }}:{{ openmrs_cd_image_tag }}' docker image"
+  docker_image:
+    name: '{{ openmrs_cd_repo_user }}/{{ openmrs_cd_image }}:{{ openmrs_cd_image_tag }}'
+    force: yes
+    state: present
+
 - name: "start a new OpenMRS CD Docker container (based on {{ openmrs_cd_image }}:{{ openmrs_cd_image_tag }})"
   docker_container:
     name: 'openmrscd'

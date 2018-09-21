@@ -40,7 +40,6 @@
     state: restarted
 
 - name: SSH fingerprint has changed, add the new host fingerprint in localhost's 'known_hosts'
-  shell: "ssh-keygen -R {{ inventory_hostname }}; ssh-keyscan {{ inventory_hostname }} >> ~/.ssh/known_hosts"
-  register: keyscan
+  shell: "ssh-keygen -R {{ inventory_hostname }} -f ~/.ssh/known_hosts; ssh-keyscan {{ inventory_hostname }} >> ~/.ssh/known_hosts"
   delegate_to: localhost
   become: false
