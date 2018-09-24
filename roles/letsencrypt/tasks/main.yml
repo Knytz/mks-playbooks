@@ -12,7 +12,7 @@
 - name: install certbot
   command: /opt/certbot/certbot-auto --os-packages-only --non-interactive
 
-- name: run certbot (This task may fail)
+- name: run certbot (failure of this task will be ignored as it can be a normal behavior, eg, DNS mapping not yet available)
   command: /opt/certbot/certbot-auto --standalone --noninteractive --agree-tos --pre-hook "systemctl stop httpd.service" --post-hook "systemctl start httpd.service" --email {{ email }} --server {{ acme_api }} certonly -d {{ domain_name }}
   ignore_errors: yes
 

@@ -35,7 +35,6 @@ apache_mods_enabled:
 pip_install_packages: 
   - docker-py
 
-
 # SSH role vars
 ssh_key_path: /etc/ssh
 ssh_type: host

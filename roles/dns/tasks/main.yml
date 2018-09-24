@@ -1,0 +1,23 @@
+---
+- name: create folder for DNS update scripts
+  file:
+    path: /etc/dns
+    state: directory
+
+- name: create folder for DNS update log
+  file:
+    path: /var/log/dns
+    state: directory
+
+- name: copy the 'dns-update.sh' script
+  template:
+    src: "{{ role_path }}/files/dns-update.sh.j2"
+    dest: "/etc/dns/dns-update.sh"
+    mode: 0755 
+
+- name: add cron job to periodically verify the DNS record
+  cron:
+    name: renew_dns
+    minute: "*/10"
+    user: root
+    job: "export VAULT_TOKEN=$({{ vault_folder }}/approle-login.sh); /etc/dns/dns-update.sh &> /var/log/dns/dns-update.approle-login"

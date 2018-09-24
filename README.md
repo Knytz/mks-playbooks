@@ -63,17 +63,13 @@ Edit the *./environments/test/hosts.inventory* inventory file just created and s
 52.17.126.111 ansible_user=centos common_name=openmrscd.vpn.mekomsolutions.net
 ```
 The IP address is the address of the server to configure.
-The variables next to each host IP depend on the host group they are in. They are listed in the corresponding *group_vars* folder. For instance, for *openmrs_cd_host* group:
+The variables next to each host IP depend on the host group they are in. But at a minimum you will need:
+- ansible_user
+- common_name
+- domain
+- subdomain
 
-`cat ./environments/test/group_vars/openmrs_cd_host.yml`
-```
-...
-# Default variables that should be overriden in the inventory file, by server:
-ansible_user: centos
-common_name: test.vpn.mekomsolutions.net
-...
-```
-
+Note that this only if you are using inventory files. If using Terraform and therefore not putting any host in the inventory file, then those vars are inherited from the terraform definition file directly (through AWS Tags). See [./roles/terraform/files/aws.tf](./roles/terraform/files/aws.tf)
 
 ### 3/ Retrieve a Vault token (Optional, based on the host group used or if you are using Terraform)
 

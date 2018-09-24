@@ -29,3 +29,8 @@
   package:
     name: git
     state: present
+
+- name: install 'bind-utils' package ('dig')
+  package:
+    name: bind-utils
+    state: present

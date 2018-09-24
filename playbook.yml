@@ -20,6 +20,8 @@
     - fail:
         msg: "Run this playbook with CentOS 7"
       when: ansible_distribution != 'CentOS' and ansible_distribution_major_version != '7'
+    - set_fact:
+      domain_name: "{{ subdomain }}.{{ domain }}"
 
 - hosts: all
   tasks:
@@ -33,6 +35,7 @@
   roles:
     - role: common
     - role: vault
+    - role: dns
     - role: vpn
       conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
     - role: geerlingguy.docker

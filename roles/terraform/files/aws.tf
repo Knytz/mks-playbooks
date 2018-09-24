@@ -14,7 +14,8 @@ resource "aws_instance" "openmrs_cd_host" {
   security_groups = [
         "Ping",
         "SSH",
-        "HTTP / HTTPS"
+        "HTTP / HTTPS",
+        "Extended 8xxx port range"
   ]
   tags = {
     Name = "[TEST] [Terraform] [CentOS_7] [OpenMRS CD]",
@@ -23,7 +24,8 @@ resource "aws_instance" "openmrs_cd_host" {
     Group = "openmrs_cd_host",
     User = "centos",
     Common_Name = "openmrs-cd.test.vpn.mekomsolutions.net",
-    Domain_Name = "openmrs-cd.test.mekomsolutions.net"
+    Domain = "mekomsolutions.net",
+    Subdomain = "openmrs-cd.test"
   }
 }
 
@@ -33,7 +35,8 @@ resource "aws_instance" "docker_host" {
   security_groups = [
         "Ping",
         "SSH",
-        "HTTP / HTTPS"
+        "HTTP / HTTPS",
+        "Extended 8xxx port range"
   ]
   tags = {
     Name = "[TEST] [Terraform] [CentOS_7] [Docker Host]",
@@ -42,7 +45,8 @@ resource "aws_instance" "docker_host" {
     Group = "docker_host",
     User = "centos",
     Common_Name = "docker-host-01.test.vpn.mekomsolutions.net",
-    Domain_Name = "docker-host-01.test.mekomsolutions.net"
+    Domain = "mekomsolutions.net",
+    Subdomain = "docker-host-01.test"
   }
 }
 
@@ -52,7 +56,8 @@ output "openmrs_cd_host_stats" {
     group = "${aws_instance.openmrs_cd_host.tags.Group}"
     user = "${aws_instance.openmrs_cd_host.tags.User}"
     common_name = "${aws_instance.openmrs_cd_host.tags.Common_Name}"
-    domain_name = "${aws_instance.openmrs_cd_host.tags.Domain_Name}"
+    domain = "${aws_instance.openmrs_cd_host.tags.Domain}"
+    subdomain = "${aws_instance.openmrs_cd_host.tags.Subdomain}"
   }
 }
 output "docker_host_stats" {
@@ -61,7 +66,8 @@ output "docker_host_stats" {
     group = "${aws_instance.docker_host.tags.Group}",
     user = "${aws_instance.docker_host.tags.User}"
     common_name = "${aws_instance.docker_host.tags.Common_Name}"
-    domain_name = "${aws_instance.docker_host.tags.Domain_Name}"
+    domain = "${aws_instance.docker_host.tags.Domain}"
+    subdomain = "${aws_instance.docker_host.tags.Subdomain}"
   }
 }
 

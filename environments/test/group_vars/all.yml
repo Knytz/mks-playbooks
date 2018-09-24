@@ -17,6 +17,7 @@ vault_intermediate_key_name: letsencrypt_intermediate_ca
 vault_certificate_key_name: letsencrypt_certificate_crt
 vault_privatekey_key_name: letsencrypt_private_key
 invalid_tls_keys_folder: ../invalid-cert.mekomsolutions.net
-le_tls_keys_folder: /etc/letsencrypt/live/{{ domain_name }}
-tls_keys_folder: /etc/ssl/cert/{{ domain_name }}
+le_tls_keys_folder: '/etc/letsencrypt/live/{{ domain_name }}'
+tls_keys_folder: '/etc/ssl/cert/{{ domain_name }}'
 email: 'support@mekomsolutions.com'
+godaddy_api_url: https://api.ote-godaddy.com/v1

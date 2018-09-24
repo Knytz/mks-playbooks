@@ -1,10 +1,6 @@
 ---
 vault_role: docker_host
 
-# Default vars that should be overridden in the inventory file, by server:
-ansible_user: centos
-common_name: docker-host.vpn.mekomsolutions.net
-
 # geerlingguy.apache role variables
 apache_vhosts_filename: "openmrscd.conf"
 apache_vhosts:

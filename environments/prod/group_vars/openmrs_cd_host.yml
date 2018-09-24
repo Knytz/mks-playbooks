@@ -7,10 +7,6 @@ openmrs_cd_image: openmrscd
 openmrs_cd_image_tag: latest
 openmrs_cd_port: 8132 # Due to a SELinux policy that already uses 8080 by default, use 8100-8999 port
 
-# Default vars that must be overridden in the inventory file, by server:
-ansible_user: centos
-common_name: openmrscd-host.vpn.mekomsolutions.net
-
 # geerlingguy.apache role variables
 apache_vhosts_filename: "openmrscd.conf"
 apache_vhosts:

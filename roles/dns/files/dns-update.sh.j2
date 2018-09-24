@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# @author: Romain Buisson - Mekom Solutions
+#
+# Bash script to update the DNS record on the machine domain when it does not match the actual IP.
+#
+godaddy_url={{ godaddy_api_url }}/domains/{{ domain }}/records/A/{{ subdomain }}
+
+actual_ip=$(curl -s https://checkip.amazonaws.com/)
+dns_ip=$(dig +short {{ subdomain }}.{{ domain }})
+if [ "$dns_ip" != "$actual_ip" ]
+then
+  echo "Fetching GoDaddy credentials from Vault..."
+  response=$(curl -s  --request GET --header "X-Vault-Token: $VAULT_TOKEN" {{ vault_url }}/v1/secret/data/mks/godaddy)
+  key=$(echo $response | jq .data.data.api_key1 | tr -d '"')
+  secret=$(echo $response | jq .data.data.api_secret1 | tr -d '"')
+  echo "Actual IP: $actual_ip"
+  echo "DNS IP: $dns_ip"
+  echo "DNS resolution and actual IP mismatch."
+  echo "Updating DNS IP..."
+  curl -s -X PUT "$godaddy_url" -H  "accept: application/json" -H  "Content-Type: application/json" -H  "Authorization: sso-key $key:$secret" --data "[{\"data\":\"$actual_ip\",\"ttl\":600}]"
+else
+  echo "Actual public IP and DNS IP are a match. No DNS update is needed."
+fi
+exit 0
