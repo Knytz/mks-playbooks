@@ -56,4 +56,3 @@ ssh_type: client
 
 # Variables for Let's Encrypt
 acme_api: 'https://acme-staging-v02.api.letsencrypt.org/directory'
-domain_name: infra-89.mekomsolutions.net

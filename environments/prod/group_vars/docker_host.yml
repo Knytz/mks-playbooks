@@ -43,4 +43,3 @@ nodejs_version: "8.x"
 
 # Variables for Let's Encrypt
 acme_api: 'https://acme-v02.api.letsencrypt.org/directory'
-domain_name: prod.mekomsolutions.net

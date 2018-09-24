@@ -15,7 +15,7 @@
   
 - name: create a keys folder to save invalid certificates
   file:
-    path: '{{ invalid_tls_keys_folder }}/'
+    path: '/etc/ssl/cert/invalid-cert.mekomsolutions.net'
     state: directory
 
 - name: parse invalid TLS certificates
@@ -28,19 +28,19 @@
 - name: save Let's Encrypt invalid ca
   copy:
     content: '{{ intermediate_ca }}'
-    dest: '{{ invalid_tls_keys_folder }}/chain.pem'
+    dest: '/etc/ssl/cert/invalid-cert.mekomsolutions.net/chain.pem'
   no_log: true
 
 - name: save Let's Encrypt invalid certificates
   copy:
     content: '{{ certificate }}'
-    dest: '{{ invalid_tls_keys_folder }}/cert.pem'
+    dest: '/etc/ssl/cert/invalid-cert.mekomsolutions.net/cert.pem'
   no_log: true
 
 - name: save Let's Encrypt invalid private key
   copy:
     content: '{{ private_key }}'
-    dest: '{{ invalid_tls_keys_folder }}/privkey.pem'
+    dest: '/etc/ssl/cert/invalid-cert.mekomsolutions.net/privkey.pem'
     mode: 0400
   no_log: true
 
@@ -49,21 +49,21 @@
     path: '{{ tls_keys_folder }}/'
     state: directory
 
-- name: create Symlink for invalid certificate (apache)
+- name: create symlink to provide temporary certificates (invalid-cert.mekomsolutions.net)
   file:
     src: "{{ invalid_tls_keys_folder }}/cert.pem"
     dest: "{{ tls_keys_folder }}/cert.pem"
     state: link
     force: yes
   
-- name: create Symlink for invalid chain
+- name: create symlink to provide temporary certificates (invalid-cert.mekomsolutions.net)
   file:
     src: "{{ invalid_tls_keys_folder }}/chain.pem"
     dest: "{{ tls_keys_folder }}/chain.pem"
     state: link
     force: yes
   
-- name: create Symlink for invalid private key
+- name: create symlink to provide temporary certificates (invalid-cert.mekomsolutions.net)
   file:
     src: "{{ invalid_tls_keys_folder }}/privkey.pem"
     dest: "{{ tls_keys_folder }}/privkey.pem"

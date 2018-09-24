@@ -5,4 +5,4 @@
 # Staging v2: https://acme-staging-v02.api.letsencrypt.org/directory
 acme_api: 'https://acme-staging-v02.api.letsencrypt.org/directory'
 domain_name: 'domain.com'
-email: 'example@mail.com'
+email: 'support@mekomsolutions.com'
