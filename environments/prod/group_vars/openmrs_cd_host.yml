@@ -49,6 +49,3 @@ nodejs_version: "8.x"
 # SSH role vars
 ssh_key_path: /opt/openmrs-cd/jenkins_home/.ssh
 ssh_type: client
-
-# Variables for Let's Encrypt
-acme_api: 'https://acme-v02.api.letsencrypt.org/directory'

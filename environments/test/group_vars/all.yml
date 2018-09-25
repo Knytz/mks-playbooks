@@ -13,11 +13,17 @@ mks_vpn_pki_chain_name: ca-chain.vpn.mekomsolutions.net
 openvpn_config_url: http://localhost:8500/v1/kv/config/openvpn
 force_renew_certs: false
 nexus_config_url: http://localhost:8500/v1/kv/config/nexus
+
+# Temporary certificates Vault key names (used before Let's Encypt successfully runs)
 vault_intermediate_key_name: letsencrypt_intermediate_ca
 vault_certificate_key_name: letsencrypt_certificate_crt
 vault_privatekey_key_name: letsencrypt_private_key
 invalid_tls_keys_folder: ../invalid-cert.mekomsolutions.net
+
+# Variables for Let's Encrypt
+acme_api: 'https://acme-staging-v02.api.letsencrypt.org/directory'
 le_tls_keys_folder: '/etc/letsencrypt/live/{{ domain_name }}'
 tls_keys_folder: '/etc/ssl/cert/{{ domain_name }}'
 email: 'support@mekomsolutions.com'
+
 godaddy_api_url: https://api.ote-godaddy.com/v1

@@ -1,5 +1,7 @@
 ---
 vault_role: openmrs_cd
+domain_name: '{{ subdomain }}.{{ domain }}'
+
 openmrs_cd_folder: /opt/openmrs-cd
 openmrs_cd_repo_user: mekomsolutions
 openmrs_cd_git_version: master
@@ -53,6 +55,3 @@ nodejs_version: "8.x"
 # SSH role vars
 ssh_key_path: /opt/openmrs-cd/jenkins_home/.ssh
 ssh_type: client
-
-# Variables for Let's Encrypt
-acme_api: 'https://acme-staging-v02.api.letsencrypt.org/directory'

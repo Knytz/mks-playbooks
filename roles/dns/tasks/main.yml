@@ -20,4 +20,4 @@
     name: renew_dns
     minute: "*/10"
     user: root
-    job: "export VAULT_TOKEN=$({{ vault_folder }}/approle-login.sh); /etc/dns/dns-update.sh &> /var/log/dns/dns-update.approle-login"
+    job: "export VAULT_TOKEN=$({{ vault_folder }}/approle-login.sh); /etc/dns/dns-update.sh &> /var/log/dns/dns-update.log"
