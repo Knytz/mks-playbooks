@@ -11,7 +11,9 @@ mks_vpn_pki_ttl: 720h
 mks_vpn_cert_renew_threshold: 1209600
 mks_vpn_pki_chain_name: ca-chain.vpn.mekomsolutions.net
 openvpn_config_url: http://localhost:8500/v1/kv/config/openvpn
-force_renew_certs: false
+force_renew_tls_keys: false
+force_renew_ssh_keys: false
+force_renew_vpn_keys: false
 nexus_config_url: http://localhost:8500/v1/kv/config/nexus
 
 # Temporary certificates Vault key names (used before Let's Encypt successfully runs)

@@ -49,23 +49,51 @@
     path: '{{ tls_keys_folder }}/'
     state: directory
 
-- name: create symlink to provide temporary certificates (invalid-cert.mekomsolutions.net)
+- name: check if a TLS key is already present
+  stat:
+    path: "{{ tls_keys_folder }}/privkey.pem"
+  register: key_stat
+
+- name: check if a TLS certificate is already present
+  stat:
+    path: "{{ tls_keys_folder }}/cert.pem"
+  register: cert_stat
+
+- name: check if a TLS chain is already present
+  stat:
+    path: "{{ tls_keys_folder }}/chain.pem"
+  register: chain_stat
+
+- set_fact:
+    replace_tls_keys: false
+
+- set_fact:
+    replace_tls_keys: true
+  when: (key_stat.stat.exists == false) or
+        (cert_stat.stat.exists == false) or
+        (chain_stat.stat.exists == false) or
+        (force_renew_tls_keys != false)
+
+- name: create symlink to distribute temporary certificates (invalid-cert.mekomsolutions.net)
   file:
     src: "{{ invalid_tls_keys_folder }}/cert.pem"
     dest: "{{ tls_keys_folder }}/cert.pem"
     state: link
     force: yes
+  when: replace_tls_keys == true
   
-- name: create symlink to provide temporary certificates (invalid-cert.mekomsolutions.net)
+- name: create symlink to distribute temporary certificates (invalid-cert.mekomsolutions.net)
   file:
     src: "{{ invalid_tls_keys_folder }}/chain.pem"
     dest: "{{ tls_keys_folder }}/chain.pem"
     state: link
     force: yes
-  
-- name: create symlink to provide temporary certificates (invalid-cert.mekomsolutions.net)
+  when: replace_tls_keys == true
+
+- name: create symlink to distribute temporary certificates (invalid-cert.mekomsolutions.net)
   file:
     src: "{{ invalid_tls_keys_folder }}/privkey.pem"
     dest: "{{ tls_keys_folder }}/privkey.pem"
     state: link
     force: yes
+  when: replace_tls_keys == true

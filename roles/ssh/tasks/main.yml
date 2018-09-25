@@ -22,14 +22,14 @@
     generate_keys: true
   when: (key_stat.stat.exists == false) or
         (pub_stat.stat.exists == false) or
-        (force_renew_certs != false)
+        (force_renew_ssh_keys != false)
 
 - set_fact:
     sign_cert: true
   when: (cert_stat.stat.exists == false and
     pub_stat.stat.exists == true and
     key_stat.stat.exists == true) or
-    force_renew_certs != false or
+    force_renew_ssh_keys != false or
     generate_keys == true
 
 - name: "ensure '{{ ssh_key_path }}' is created"

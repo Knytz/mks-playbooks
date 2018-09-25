@@ -47,7 +47,7 @@
         (chain_stat.stat.exists == false) or
         (cert_expiry_check.rc != 0) or
         (cert_common_name.stdout != common_name) or
-        (force_renew_certs != false)
+        (force_renew_vpn_keys != false)
   notify: restart OpenVPN
 
 - name: log in Vault
