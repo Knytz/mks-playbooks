@@ -1,6 +1,5 @@
 ---
 vault_role: docker_host
-domain_name: '{{ subdomain }}.{{ domain }}'
 
 # Default vars that should be overridden in the inventory file, by server:
 ansible_user: centos

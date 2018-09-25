@@ -1,7 +1,5 @@
 ---
 vault_role: openmrs_cd
-domain_name: '{{ subdomain }}.{{ domain }}'
-
 openmrs_cd_folder: /opt/openmrs-cd
 openmrs_cd_repo_user: mekomsolutions
 openmrs_cd_git_version: master
