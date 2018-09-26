@@ -1,4 +1,9 @@
 ---
+- fail:
+    msg: "Please provide a Vault Token as '--extra-vars 'vault_token=...'' when running the Ansible playbook, or verify that it is not empty."
+  when: vault_token is not defined or
+        vault_token == ""
+
 - name: fetch AWS API key from Vault
   uri:
     url: '{{ vault_url.stdout }}/v1/secret/data/mks/aws'

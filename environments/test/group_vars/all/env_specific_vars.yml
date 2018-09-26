@@ -1,0 +1,4 @@
+---
+vault_config_url: http://localhost:8500/v1/kv/config/vault/test
+acme_api: 'https://acme-staging-v02.api.letsencrypt.org/directory'
+godaddy_api_url: https://api.ote-godaddy.com/v1

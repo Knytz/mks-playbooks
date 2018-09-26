@@ -2,7 +2,7 @@
   shell: '{{ vault_folder }}/approle-login.sh'
   register: approle_token
 
-- name: fetch invalid TLS certificates
+- name: fetch default TLS certificates
   uri:
     url: '{{ vault_url }}/v1/secret/data/mks/tls'
     method: GET
@@ -13,55 +13,55 @@
   register: tls_response
   no_log: true
   
-- name: create a keys folder to save invalid certificates
+- name: create a keys folder to save default certificates
   file:
-    path: '/etc/ssl/cert/invalid-cert.mekomsolutions.net'
+    path: '{{ default_tls_keys_folder }}'
     state: directory
 
-- name: parse invalid TLS certificates
+- name: parse default TLS certificates
   set_fact:
     intermediate_ca: '{{ tls_response.json.data.data[vault_intermediate_key_name] }}'
     certificate: '{{ tls_response.json.data.data[vault_certificate_key_name] }}'
     private_key: '{{ tls_response.json.data.data[vault_privatekey_key_name] }}'
   no_log: true
 
-- name: save Let's Encrypt invalid ca
+- name: save Let's Encrypt default CA
   copy:
     content: '{{ intermediate_ca }}'
-    dest: '/etc/ssl/cert/invalid-cert.mekomsolutions.net/chain.pem'
+    dest: '{{ default_tls_keys_folder }}/chain.pem'
   no_log: true
 
-- name: save Let's Encrypt invalid certificates
+- name: save Let's Encrypt default certificates
   copy:
     content: '{{ certificate }}'
-    dest: '/etc/ssl/cert/invalid-cert.mekomsolutions.net/cert.pem'
+    dest: '{{ default_tls_keys_folder }}/cert.pem'
   no_log: true
 
-- name: save Let's Encrypt invalid private key
+- name: save Let's Encrypt default private key
   copy:
     content: '{{ private_key }}'
-    dest: '/etc/ssl/cert/invalid-cert.mekomsolutions.net/privkey.pem'
+    dest: '{{ default_tls_keys_folder }}/privkey.pem'
     mode: 0400
   no_log: true
 
-- name: create a folder to create symlink for apache's TLS keys
+- name: 'ensure the {{ domain_tls_keys_folder}} exists'
   file:
-    path: '{{ tls_keys_folder }}/'
+    path: '{{ domain_tls_keys_folder }}/'
     state: directory
 
 - name: check if a TLS key is already present
   stat:
-    path: "{{ tls_keys_folder }}/privkey.pem"
+    path: "{{ domain_tls_keys_folder }}/privkey.pem"
   register: key_stat
 
 - name: check if a TLS certificate is already present
   stat:
-    path: "{{ tls_keys_folder }}/cert.pem"
+    path: "{{ domain_tls_keys_folder }}/cert.pem"
   register: cert_stat
 
 - name: check if a TLS chain is already present
   stat:
-    path: "{{ tls_keys_folder }}/chain.pem"
+    path: "{{ domain_tls_keys_folder }}/chain.pem"
   register: chain_stat
 
 - set_fact:
@@ -74,26 +74,31 @@
         (chain_stat.stat.exists == false) or
         (force_renew_tls_keys != false)
 
-- name: create symlink to distribute temporary certificates (invalid-cert.mekomsolutions.net)
+- name: retrieve the relative path between the default certs folder and the domain certs folder
+  command: 'realpath --relative-to={{ domain_tls_keys_folder }} {{ default_tls_keys_folder }}'
+  register: relative_path
+  when: replace_tls_keys == true
+
+- name: create symlink to distribute temporary certificates ({{ default_domain_name }})
   file:
-    src: "{{ invalid_tls_keys_folder }}/cert.pem"
-    dest: "{{ tls_keys_folder }}/cert.pem"
+    src: "{{ relative_path.stdout }}/cert.pem"
+    dest: "{{ domain_tls_keys_folder }}/cert.pem"
     state: link
     force: yes
   when: replace_tls_keys == true
   
-- name: create symlink to distribute temporary certificates (invalid-cert.mekomsolutions.net)
+- name: create symlink to distribute temporary certificates ({{ default_domain_name }})
   file:
-    src: "{{ invalid_tls_keys_folder }}/chain.pem"
-    dest: "{{ tls_keys_folder }}/chain.pem"
+    src: "{{ relative_path.stdout }}/chain.pem"
+    dest: "{{ domain_tls_keys_folder }}/chain.pem"
     state: link
     force: yes
   when: replace_tls_keys == true
 
-- name: create symlink to distribute temporary certificates (invalid-cert.mekomsolutions.net)
+- name: create symlink to distribute temporary certificates ({{ default_domain_name }})
   file:
-    src: "{{ invalid_tls_keys_folder }}/privkey.pem"
-    dest: "{{ tls_keys_folder }}/privkey.pem"
+    src: "{{ relative_path.stdout }}/privkey.pem"
+    dest: "{{ domain_tls_keys_folder }}/privkey.pem"
     state: link
     force: yes
   when: replace_tls_keys == true

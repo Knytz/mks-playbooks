@@ -1,6 +1,5 @@
 ---
 domain_name: '{{ subdomain }}.{{ domain }}'
-vault_config_url: http://localhost:8500/v1/kv/config/vault
 vault_folder: /etc/vault
 vault_keys_folder: '{{ vault_folder }}/keys'
 openvpn_folder: /etc/openvpn
@@ -18,15 +17,13 @@ force_renew_vpn_keys: false
 nexus_config_url: http://localhost:8500/v1/kv/config/nexus
 
 # Temporary certificates Vault key names (used before Let's Encypt successfully runs)
-vault_intermediate_key_name: godaddy_ca_intermediate_crt
-vault_certificate_key_name: mekomsolutions_net_crt
-vault_privatekey_key_name: mekomsolutions_net_key
-invalid_tls_keys_folder: ../invalid-cert.mekomsolutions.net
+vault_intermediate_key_name: letsencrypt_intermediate_ca
+vault_certificate_key_name: letsencrypt_certificate_crt
+vault_privatekey_key_name: letsencrypt_private_key
 
 # Variables for Let's Encrypt
-acme_api: 'https://acme-v02.api.letsencrypt.org/directory'
 le_tls_keys_folder: '/etc/letsencrypt/live/{{ domain_name }}'
-tls_keys_folder: '/etc/ssl/{{ domain_name }}'
+domain_tls_keys_folder: '/etc/ssl/{{ domain_name }}'
+default_domain_name: default.mekomsolutions.net
+default_tls_keys_folder: '/etc/ssl/{{ default_domain_name }}'
 email: 'support@mekomsolutions.com'
-
-godaddy_api_url: https://api.godaddy.com/v1

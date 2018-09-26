@@ -2,7 +2,7 @@
 vault_role: docker_host
 
 # geerlingguy.apache role variables
-apache_vhosts_filename: "openmrscd.conf"
+apache_vhosts_filename: "{{ subdomain }}.conf"
 apache_vhosts:
   - servername: "http"
     extra_parameters: |
@@ -14,12 +14,11 @@ apache_allow_override: "All"
 apache_options: "-Indexes +FollowSymLinks"
 
 apache_vhosts_ssl: 
-  - servername: "test.mekomsolutions.net"
-    serveralias: "server.test"
+  - servername: "{{ domain_name }}"
 
-    certificate_file: "{{ tls_keys_folder }}/cert.pem"
-    certificate_key_file: "{{ tls_keys_folder }}/privkey.pem"
-    certificate_chain_file: "{{ tls_keys_folder }}/chain.pem"
+    certificate_file: "{{ domain_tls_keys_folder }}/cert.pem"
+    certificate_key_file: "{{ domain_tls_keys_folder }}/privkey.pem"
+    certificate_chain_file: "{{ domain_tls_keys_folder }}/chain.pem"
 
 # Only used on Debian/Ubuntu
 apache_mods_enabled:
@@ -34,5 +33,3 @@ pip_install_packages:
 # SSH role vars
 ssh_key_path: /etc/ssh
 ssh_type: host
-
-nodejs_version: "8.x"

@@ -7,12 +7,8 @@ openmrs_cd_image: openmrscd
 openmrs_cd_image_tag: latest
 openmrs_cd_port: 8132 # Due to a SELinux policy that already uses 8080 by default, use 8100-8999 port
 
-# Default vars that must be overridden in the inventory file, by server:
-ansible_user: centos
-common_name: openmrscd-host.vpn.mekomsolutions.net
-
 # geerlingguy.apache role variables
-apache_vhosts_filename: "openmrscd.conf"
+apache_vhosts_filename: "{{ subdomain }}.conf"
 apache_vhosts:
   - servername: "http"
     extra_parameters: |
@@ -24,12 +20,11 @@ apache_allow_override: "All"
 apache_options: "-Indexes +FollowSymLinks"
 
 apache_vhosts_ssl: 
-  - servername: "test.mekomsolutions.net"
-    serveralias: "server.test"
+  - servername: "{{ domain_name }}"
 
-    certificate_file: "{{ tls_keys_folder }}/cert.pem"
-    certificate_key_file: "{{ tls_keys_folder }}/privkey.pem"
-    certificate_chain_file: "{{ tls_keys_folder }}/chain.pem"
+    certificate_file: "{{ domain_tls_keys_folder }}/cert.pem"
+    certificate_key_file: "{{ domain_tls_keys_folder }}/privkey.pem"
+    certificate_chain_file: "{{ domain_tls_keys_folder }}/chain.pem"
 
     proxy_pass: '/ http://localhost:{{ openmrs_cd_port }}/ nocanon'
     proxy_pass_reverse: '/ http://localhost:{{ openmrs_cd_port }}/'

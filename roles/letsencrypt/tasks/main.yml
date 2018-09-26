@@ -13,7 +13,7 @@
   command: /opt/certbot/certbot-auto --os-packages-only --non-interactive
 
 - name: run certbot (failure of this task will be ignored as it can be considered a normal behavior in some cases, eg, DNS mapping not yet available)
-  shell: /opt/certbot/certbot-auto --standalone --noninteractive --agree-tos --pre-hook "systemctl stop httpd.service" --post-hook "systemctl start httpd.service" --deploy-hook "rsync -avL {{ le_tls_keys_folder }}/*.pem {{ tls_keys_folder }}/" --email {{ email }} --server {{ acme_api }} certonly -d {{ domain_name }} &>> /var/log/letsencrypt/certbot.log
+  shell: /opt/certbot/certbot-auto --standalone --noninteractive --agree-tos --pre-hook "systemctl stop httpd.service" --post-hook "systemctl start httpd.service" --deploy-hook "rsync -avL {{ le_tls_keys_folder }}/*.pem {{ domain_tls_keys_folder }}/" --email {{ email }} --server {{ acme_api }} certonly -d {{ domain_name }} &>> /var/log/letsencrypt/certbot.log
   ignore_errors: yes
 
 - name: add cron job to create or renew certificates
@@ -22,4 +22,4 @@
     minute: "50"
     hour: "5,23"
     user: root
-    job: /opt/certbot/certbot-auto --standalone --noninteractive --agree-tos --pre-hook "systemctl stop httpd.service" --post-hook "systemctl start httpd.service" --deploy-hook "rsync -avL {{ le_tls_keys_folder }}/*.pem {{ tls_keys_folder }}/" --email {{ email }} --server {{ acme_api }} certonly -d {{ domain_name }} &>> /var/log/letsencrypt/certbot.log
+    job: /opt/certbot/certbot-auto --standalone --noninteractive --agree-tos --pre-hook "systemctl stop httpd.service" --post-hook "systemctl start httpd.service" --deploy-hook "rsync -avL {{ le_tls_keys_folder }}/*.pem {{ domain_tls_keys_folder }}/" --email {{ email }} --server {{ acme_api }} certonly -d {{ domain_name }} &>> /var/log/letsencrypt/certbot.log
