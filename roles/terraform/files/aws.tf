@@ -50,6 +50,27 @@ resource "aws_instance" "docker_host" {
   }
 }
 
+resource "aws_instance" "vpn_server" {
+  ami           = "ami-00d26e4d09d30c72e"
+  instance_type = "t2.nano"
+  security_groups = [
+        "Ping",
+        "SSH",
+        "HTTP / HTTPS",
+        "Extended 8xxx port range"
+  ]
+  tags = {
+    Name = "[TEST] [Terraform] [CentOS_7] [VPN Server]",
+    Type = "test",
+    Owner = "${data.aws_caller_identity.current.user_id}",
+    Group = "vpn_server",
+    User = "centos",
+    Common_Name = "vpn-server.test.vpn.mekomsolutions.net",
+    Domain = "mekomsolutions.net",
+    Subdomain = "vpn-server.test"
+  }
+}
+
 output "openmrs_cd_host_stats" {
   value = {
     ip = "${aws_instance.openmrs_cd_host.public_ip}",
@@ -70,4 +91,13 @@ output "docker_host_stats" {
     subdomain = "${aws_instance.docker_host.tags.Subdomain}"
   }
 }
-
+output "vpn_server_stats" {
+  value = {
+    ip = "${aws_instance.vpn_server.public_ip}",
+    group = "${aws_instance.vpn_server.tags.Group}",
+    user = "${aws_instance.vpn_server.tags.User}"
+    common_name = "${aws_instance.vpn_server.tags.Common_Name}"
+    domain = "${aws_instance.vpn_server.tags.Domain}"
+    subdomain = "${aws_instance.vpn_server.tags.Subdomain}"
+  }
+}
