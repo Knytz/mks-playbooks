@@ -1,0 +1,3 @@
+---
+vault_role: vpn_server
+mks_vpn_pki_role: vpn_server

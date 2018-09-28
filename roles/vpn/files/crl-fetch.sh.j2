@@ -1,0 +1,24 @@
+#!/bin/bash
+# Author: Romain Buisson - Mekom Solutions
+# Contact: support@mekomsolutions.com
+#
+# Script to fetch OpenVPN Certificate Revocation List from the Vault server
+
+url="{{ vault_url }}/v1/{{ mks_vpn_pki }}/crl/pem"
+response="/tmp/response.json"
+crl="/etc/openvpn/crls/crl.pem"
+log_folder="/var/log/vault/"
+log="$log_folder/fetch-crl.log"
+
+mkdir -p $log_folder
+rm -f $response
+
+status=$(curl -s -w %{http_code}  $url -o $response)
+echo $status
+if [[ "$status" = "200" ]] ; then
+  cat $response > $crl
+else
+  echo "[ERROR] $(date) - Unable to fetch the CRL (non 200 HTTP status code)" >> $log
+  cat $response >> $log
+  echo "Returned HTTP/2: $status" >> $log
+fi

@@ -1,0 +1,26 @@
+#!/bin/bash
+# Author: Romain Buisson - Mekom Solutions
+# Contact: support@mekomsolutions.com
+#
+# Script to rotate/renew Vault Certificate Revocation List
+
+read VAULT_TOKEN
+url="{{ vault_url }}/v1/{{ mks_vpn_pki }}/crl/rotate"
+response="/tmp/response.json"
+secretID="/etc/openvpn/keys/approle-secrect-id.txt"
+crl="/etc/openvpn/crls/crl.pem"
+log_folder="/var/log/vault/"
+log="$log_folder/renew-crl.log"
+
+mkdir -p $log_folder
+rm -f $response
+
+status=$(curl --header "X-Vault-Token: $VAULT_TOKEN" -s -w %{http_code}  $url -o $response)
+echo $status
+if [[ "$status" = "200" ]] ; then
+  exit 0
+else
+  echo "[ERROR] $(date) - Unable to rotate/renew the CRL (non 200 HTTP status code)" >> $log
+  cat $response >> $log
+  echo "Returned HTTP/2: $status" >> $log
+fi

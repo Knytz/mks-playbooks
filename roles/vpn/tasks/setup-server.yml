@@ -1,0 +1,64 @@
+---
+- name: retrieve public ip address
+  uri:
+    url: https://checkip.amazonaws.com/
+    method: GET
+    status_code: 200
+    return_content: true
+  register: vpn_public_ip
+
+- name: create CRL folder
+  file:
+    path: "{{ openvpn_folder }}/crls"
+    state: directory
+    mode: 0755
+
+- name: copy 'crl-fetch.sh'
+  template: 
+    src: "{{ role_path }}/files/crl-fetch.sh.j2"
+    dest: "{{ openvpn_folder }}/crl-fetch.sh"
+    mode: 0744
+
+- name: run crl fetch
+  command: "{{ openvpn_folder }}/crl-fetch.sh"
+
+- name: ensure crl has been fetched and is valid
+  stat:
+    path: "{{ openvpn_folder }}/crl-fetch.sh"
+
+- name: Add crl fetch to crontab to run every minute
+  cron:
+    name: crl_fetch
+    job: "{{ openvpn_folder }}/crl-fetch.sh"
+
+- name: copy 'crl-rotate.sh'
+  template: 
+    src: "{{ role_path }}/files/crl-rotate.sh.j2"
+    dest: "{{ openvpn_folder }}/crl-rotate.sh"
+    mode: 0744
+
+- name: Add crl rotate to crontab to run every day
+  cron:
+    name: crl_rotate
+    special_time: daily
+    job: "{{ openvpn_folder }}/crl-rotate.sh"
+
+- name: copy "disconnect-client.sh"
+  copy:
+    src: "{{ role_path }}/files/disconnect-client.sh"
+    dest: "{{ openvpn_folder }}/disconnect-client.sh"
+    mode: 0744
+
+- name: Install Telnet
+  yum:
+    name: telnet
+    state: present
+
+- name: check if the DH params is already present
+  stat:
+    path: '{{ openvpn_folder }}/keys/dh2048.pem'
+  register: dh_params_stat
+
+- name: create Diffie-Hellman params
+  command: "openssl dhparam -outform PEM -out {{ openvpn_folder }}/keys/dh2048.pem 2048"
+  when: dh_params_stat.stat.exists == false

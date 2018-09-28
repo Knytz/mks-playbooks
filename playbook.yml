@@ -34,23 +34,38 @@
     - role: common
     - role: vault
     - role: dns
-    - role: vpn
-      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
     - role: geerlingguy.docker
       docker_users:
-      - '{{ ansible_user }}'
+        - '{{ ansible_user }}'
     - role: tls
     - role: geerlingguy.apache
     - role: letsencrypt
 
+- hosts: vpn_server
+  become: true
+  roles: 
+    - role: vpn
+      type: server
+      conf_template: "{{ hostvars['localhost']['openvpn_server_conf_template'] }}"
+
 - hosts: docker_host
   become: true
   roles:
+    - role: vpn
+      type: client
+      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
+      server_ip: "{% for host in groups['vpn_server'] %}
+                  {{ hostvars[host]['vpn_public_ip']['content'] }}
+                  {% endfor %}"
     - role: ssh
 
 - hosts: openmrs_cd_host
   become: true
   roles:
+    - role: vpn
+      type: client
+      conf_template: "{{ hostvars['localhost']['openvpn_client_conf_template'] }}"
+      server_ip: "{{ hostvars['vpn_server']['vpn_public_ip'] }}"
     - role: geerlingguy.pip
     - role: geerlingguy.nodejs
     - role: openmrs_cd

@@ -31,6 +31,22 @@
   register: openvpn_client_conf_template
   delegate_to: 127.0.0.1
 
+- name: retrieve OpenVPN server config file from the configuration service
+  uri:
+    url: '{{ openvpn_config_url }}/server_conf'
+    method: GET
+    status_code: 200
+    body_format: json
+  register: server_conf_template_coded
+  delegate_to: 127.0.0.1
+
+- name: decode base64 response
+  shell: 'echo {{ server_conf_template_coded.json[0].Value }} | base64 --decode'
+  args:
+    executable: /bin/bash
+  register: openvpn_server_conf_template
+  delegate_to: 127.0.0.1
+
 - name: retrieve Nexus Repo Id from the configuration service
   uri:
     url: '{{ nexus_config_url }}/repo_id'

@@ -2,3 +2,4 @@
 vault_config_url: http://localhost:8500/v1/kv/config/vault
 acme_api: 'https://acme-v02.api.letsencrypt.org/directory'
 godaddy_api_url: https://api.godaddy.com/v1
+mks_vpn_pki_chain_name: ca-chain.vpn.mekomsolutions.net

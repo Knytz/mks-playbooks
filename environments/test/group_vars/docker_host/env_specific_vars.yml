@@ -1,0 +1,4 @@
+---
+vpn_remotes:
+  - ip: "{{ server_ip_trimed.stdout }}" 
+    port: '1194'

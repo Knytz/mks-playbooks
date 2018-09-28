@@ -1,8 +1,8 @@
 ---
 - name: install OpenVPN package
-  package:
-    name: openvpn
-    state: latest
+  yum:
+    name: openvpn-2.4.6-1.el7.x86_64
+    state: present
 
 - name: create an OpenVPN folder to store keys
   file:
@@ -57,7 +57,7 @@
 
 - name: issue a new VPN certficate from Vault
   uri:
-    url: '{{ vault_url }}/v1/{{ mks_vpn_pki }}/issue/{{ mks_vpn_pki_client_role }}'
+    url: '{{ vault_url }}/v1/{{ mks_vpn_pki }}/issue/{{ mks_vpn_pki_role }}'
     method: POST
     status_code: 200
     body_format: json
@@ -103,23 +103,31 @@
     dest: '{{ openvpn_keys_folder }}/{{ mks_vpn_pki_chain_name }}.crt'
   when: renew
 
-- name: save the configuration template as 'client.conf.j2'
+- name: save the configuration template as '{{ type }}.conf.j2'
   copy:
     content: '{{ conf_template.stdout }}'
-    dest: /tmp/client.conf.j2
+    dest: '/tmp/{{ type }}.conf.j2'
 
-- name: get the 'client.conf.j2' configuration template
+- name: get the '{{ type }}.conf.j2' configuration template
   fetch:
-    src: /tmp/client.conf.j2
+    src: /tmp/{{ type }}.conf.j2
     dest: '/tmp/ansible/'
 
-- name: save the configuration as 'client.conf'
+- name: remove the new line (\n) from the server ip
+  shell: echo {{ server_ip }} | tr -d \n
+  register: server_ip_trimed
+  when: type == 'client' 
+
+- name: save the configuration as '{{ type }}.conf'
   template:
-    src: '/tmp/ansible/{{ inventory_hostname }}/tmp/client.conf.j2'
-    dest: '{{ openvpn_folder }}/client.conf'
+    src: '/tmp/ansible/{{ inventory_hostname }}/tmp/{{ type }}.conf.j2'
+    dest: '{{ openvpn_folder }}/{{ type }}.conf'
   notify: restart OpenVPN
+
+- include_tasks: setup-server.yml
+  when: type == 'server'
 
 - name: set OpenVPN as a service to start at boot
   service:
-    name: "{{ 'openvpn@client' if ansible_service_mgr == 'systemd' else 'openvpn' }}"
+    name: "openvpn@{{ type }}"
     enabled: yes

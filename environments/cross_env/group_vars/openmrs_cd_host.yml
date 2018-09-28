@@ -48,3 +48,8 @@ nodejs_version: "8.x"
 # SSH role vars
 ssh_key_path: /opt/openmrs-cd/jenkins_home/.ssh
 ssh_type: client
+
+mks_vpn_pki_role: vpn_client
+vpn_remote:
+  - ip: '{{ public_ip }}' 
+    port: '1194'
